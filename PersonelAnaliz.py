@@ -110,7 +110,7 @@ with t1:
             boo_table = create_two_column_table(boo_data)
             st.table(boo_table)
         else:
-            st.write("BoO'da bulunan yok")
+            st.write("BoO'da bulunan yok (NEDEN BOO'DA KİMSE YOK!)")
 
     with c2:
         st.write("🚧Göreve Gidenler")
@@ -129,7 +129,7 @@ with t1:
             diger_table.index = diger_table.index + 1
             st.table(diger_table)
         else:
-            st.write("Diğer kategorisinde bulunan yok")
+            st.write("Diğer kategorisinde kimse yok!")
 
     colmn1,colmn2,column3 = st.columns([2,3,2])
     chart_data = data["Bulunduğu Yer"].value_counts().reset_index()
