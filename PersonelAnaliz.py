@@ -6,14 +6,14 @@ import numpy as np
 import altair as alt
 
 st.set_page_config(
-    page_title="Personel Takip | Kurt-Ar Arama Kurtarma",
+    page_title="Kurt-Ar Arama Kurtarma",
     page_icon="⚠️",
     layout="wide",
     initial_sidebar_state="expanded")
-st.title('Personel Takip | Kurt-Ar Arama Kurtarma')
+st.title('Kurt-Ar Arama Kurtarma')
 st.write('K.Kocyigit &  M.Unsaldi')
 
-t1, t2 ,t3 = st.tabs(["Kim Nerede", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
+t1, t2 ,t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
 
 data = pd.read_csv("edata.csv", dtype="string")
 
@@ -53,15 +53,22 @@ def log_changes(old_data, new_data):
 if 'old_data' not in st.session_state:
     st.session_state['old_data'] = data.copy()
 
+def create_single_column_table(data):
+    combined_names = data["Ad"] + " " + data["Soyad"]
+    combined_namess = combined_names.tolist()
+    explanations = data["Açıklama"].tolist()  # Açıklama sütununu al
+    combined_data = list(zip(combined_namess, explanations))
+    return pd.DataFrame(combined_data, columns=[f"Toplam kişi sayısı: {len(combined_names)}", "Açıklama"])
+
+
 def create_two_column_table(data):
     combined_names = data["Ad"] + " " + data["Soyad"]
     combined_namess = combined_names.tolist()
     combined_namess += [""] * (len(combined_namess) % 2)  # If odd number of names, add an empty string
     combined_namess = np.array(combined_namess).reshape(-1, 2)
     return pd.DataFrame(combined_namess, columns=["Toplam kişi sayısı", f"{len(combined_names)}"])
-
 with t1:
-    st.write("Kim Nerede")
+    st.write("Kim Nerede?")
 
     edited = st.data_editor(data, use_container_width=True, hide_index=True, key="changedData", column_config={
         "Bulunduğu Yer": st.column_config.SelectboxColumn(
@@ -75,10 +82,17 @@ with t1:
             ],
             required=True,
         ),
-        "Son Değişiklik": st.column_config.Column(
-            "Son Değişiklik",
-            help="Son değişiklik tarihi ve saati",
-            width="medium"
+        "Tim": st.column_config.SelectboxColumn(
+            "Tim",
+            help="Kişinin timi",
+            width="medium",
+            options=[
+                "☝🏻️Tim-1",
+                "✌🏻️Tim-2",
+                "👔Yönetim",
+                "⚙️Tim Dışı",
+            ],
+            required=True,
         )
     })
 
@@ -87,6 +101,7 @@ with t1:
         st.session_state['old_data'].to_csv("edata.csv", index=False)
         st.experimental_rerun()
     st.divider()
+    
     c1, c2, c3 = st.columns(3)
     with c1:
         st.write("⛺BoO'da Bulunanlar")
@@ -109,10 +124,13 @@ with t1:
         st.write("❔Diğer")
         diger_data = data[data["Bulunduğu Yer"] == "❔ Diğer"]
         if not diger_data.empty:
-            diger_table = create_two_column_table(diger_data)
+            diger_table = create_single_column_table(diger_data)
+            # Index'i 1'den başlayacak şekilde yeniden ayarla
+            diger_table.index = diger_table.index + 1
             st.table(diger_table)
         else:
             st.write("Diğer kategorisinde bulunan yok")
+
     colmn1,colmn2,column3 = st.columns([2,3,2])
     chart_data = data["Bulunduğu Yer"].value_counts().reset_index()
     chart_data.columns = ["Bulunduğu Yer", "Kişi Sayısı"]
@@ -145,11 +163,11 @@ with t2:
     else:
         st.write("Henüz kayıt yok.")
 
-
 with t3:
     st.write("Yeni Kayıt Ekle")
     with st.form(key='my_form', clear_on_submit=True):
-        user_input = st.text_area("Metin girin")
+        user_name = st.text_input("Kaydı Giren Kişi")
+        user_input = st.text_area("Görev Kaydı Girin")
         submit_button = st.form_submit_button(label='Ekle')
 
     if submit_button:
@@ -157,7 +175,7 @@ with t3:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Yeni girdiyi oluşturma
-        new_entry = pd.DataFrame([[timestamp, user_input]], columns=["Zaman Damgası", "Metin"])
+        new_entry = pd.DataFrame([[timestamp, user_name, user_input]], columns=["Zaman Damgası", "Ad", "Metin"])
         
         # Mevcut tabloyu yükleme veya yeni bir tane oluşturma
         if os.path.exists("user_data.csv"):
@@ -176,17 +194,20 @@ with t3:
         st.write("Kayıtlar:")
         st.dataframe(user_data, use_container_width=True)
 
-        # Satır silme işlemi
-        row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
-        if st.button("Seçili Satırı Sil",key=1):
-            user_data = user_data.drop(row_to_delete).reset_index(drop=True)
-            user_data.to_csv("user_data.csv", index=False)
-            st.experimental_rerun()
-        
-        # Dosya indirme işlemi
-        st.download_button(
-            label="Dosyayı indir",
-            data=user_data.to_csv(index=False).encode('utf-8'),
-            file_name='user_data.csv',
-            mime='text/csv',
-        )
+        if not user_data.empty:
+            # Satır silme işlemi
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
+            if st.button("Seçili Satırı Sil", key=1):
+                user_data = user_data.drop(row_to_delete).reset_index(drop=True)
+                user_data.to_csv("user_data.csv", index=False)
+                st.experimental_rerun()
+            
+            # Dosya indirme işlemi
+            st.download_button(
+                label="Dosyayı indir",
+                data=user_data.to_csv(index=False).encode('utf-8'),
+                file_name='user_data.csv',
+                mime='text/csv',
+            )
+        else:
+            st.write("Silinecek kayıt yok.")
