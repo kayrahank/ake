@@ -113,6 +113,18 @@ with t1:
             st.table(diger_table)
         else:
             st.write("Diğer kategorisinde bulunan yok")
+    colmn1,colmn2,column3 = st.columns([2,3,2])
+    chart_data = data["Bulunduğu Yer"].value_counts().reset_index()
+    chart_data.columns = ["Bulunduğu Yer", "Kişi Sayısı"]
+
+    pie_chart = alt.Chart(chart_data).mark_arc().encode(
+        theta=alt.Theta(field="Kişi Sayısı", type="quantitative"),
+        color=alt.Color(field="Bulunduğu Yer", type="nominal"),
+        tooltip=["Bulunduğu Yer", "Kişi Sayısı"]
+    )
+    with colmn2:
+        with st.expander("Bulunduğu Yer Bilgisine Göre Dağılım"):
+            st.altair_chart(pie_chart)
 
 with t2:
     st.write("Kayıt Defteri")
@@ -133,18 +145,7 @@ with t2:
     else:
         st.write("Henüz kayıt yok.")
 
-    colmn1,colmn2,column3 = st.columns([2,3,2])
-    chart_data = data["Bulunduğu Yer"].value_counts().reset_index()
-    chart_data.columns = ["Bulunduğu Yer", "Kişi Sayısı"]
 
-    pie_chart = alt.Chart(chart_data).mark_arc().encode(
-        theta=alt.Theta(field="Kişi Sayısı", type="quantitative"),
-        color=alt.Color(field="Bulunduğu Yer", type="nominal"),
-        tooltip=["Bulunduğu Yer", "Kişi Sayısı"]
-    )
-    with colmn2:
-        with st.expander("Bulunduğu Yer Bilgisine Göre Dağılım"):
-            st.altair_chart(pie_chart)
 with t3:
     st.write("Yeni Kayıt Ekle")
     with st.form(key='my_form', clear_on_submit=True):
