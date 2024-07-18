@@ -1,0 +1,12 @@
+pip-review
+pandas
+numpy
+watchdog
+setuptools
+streamlit
+altair
+st-theme
+streamlit_option_menu
+google.auth
+datetime
+os
