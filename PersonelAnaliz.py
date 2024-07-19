@@ -41,11 +41,7 @@ def authenticate():
     drive = GoogleDrive(gauth)
     return drive
 
-# Functions to download and upload files from/to Google Drive
-def download_file_from_drive(drive, file_id):
-    file = drive.CreateFile({'id': file_id})
-    file.GetContentFile(file['title'])
-    return pd.read_csv(file['title'])
+
 
 def upload_file_to_drive(drive, file_path, file_id=None):
     if file_id:
@@ -76,9 +72,9 @@ if st.button('Google Drive ile Senkronize Et'):
     drive = authenticate()
 
     # Download data from Google Drive
-    data = download_file_from_drive(drive, EDATA_FILE_ID)
-    log_data = download_file_from_drive(drive, LOG_DATA_FILE_ID) if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0 else None
-    user_data = download_file_from_drive(drive, USER_DATA_FILE_ID) if os.path.exists("user_data.csv") else None
+    data = pd.data_csv('edata.csv')
+    log_data = pd.data_csv('log_data.csv') if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0 else None
+    user_data = pd.data_csv('user.csv') if os.path.exists("user_data.csv") else None
 
     # Save to session state to use later
     st.session_state['drive'] = drive
