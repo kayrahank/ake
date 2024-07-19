@@ -235,6 +235,6 @@ with t3:
                 mime='text/csv',
             )
 
-    if st.button("Kullanıcı dosyasını Drive ile eşitle"):
-        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
-        st.success("Kullanıcı dosyası Drive ile eşitlendi")
+if st.button("Kullanıcı dosyasını Drive ile eşitle"):
+    upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
+    st.success("Kullanıcı dosyası Drive ile eşitlendi")
