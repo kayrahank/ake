@@ -23,10 +23,6 @@ credentials = {
 with open('credentials.json', 'w') as f:
     json.dump(credentials, f)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 66820b5f2c38cd85d1c5361a5b57cee52c856f97
 def authenticate():
     gauth = GoogleAuth()
 
