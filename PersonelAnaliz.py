@@ -11,6 +11,7 @@ import schedule
 import time
 from threading import Thread
 
+# Set up Google Drive credentials
 credentials = {
     "installed": {
         "client_id": st.secrets["CLIENT_ID"],
@@ -181,7 +182,6 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
-        st.experimental_rerun()
     
     st.divider()
     
@@ -214,7 +214,7 @@ with t1:
         else:
             st.write("Diğer kategorisinde kimse yok!")
 
-    colmn1,colmn2,column3 = st.columns([2,3,2])
+    colmn1, colmn2, column3 = st.columns([2,3,2])
     chart_data = data["Bulunduğu Yer"].value_counts().reset_index()
     chart_data.columns = ["Bulunduğu Yer", "Kişi Sayısı"]
 
