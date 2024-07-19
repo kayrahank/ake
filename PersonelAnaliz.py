@@ -220,55 +220,11 @@ with t3:
                 user_data.to_csv("user_data.csv", index=False)
                 st.experimental_rerun()
 
-if st.button("Kullanıcı dosyasını Drive ile eşitle"):
+if st.button("Tüm Dosyaları Google Drive ile Eşitle",type=primary):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
     upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
 
 
-sync_button_html = """
-    <style>
-    .sync-button {
-        display: inline-block;
-        padding: 10px 20px;
-        font-size: 16px;
-        font-weight: bold;
-        color: #ffffff;
-        background-color: #4CAF50;
-        border: none;
-        border-radius: 5px;
-        text-align: center;
-        cursor: pointer;
-        text-decoration: none;
-        transition: background-color 0.3s;
-    }
-    .sync-button:hover {
-        background-color: #45a049;
-    }
-    </style>
-    <a class="sync-button" href="#" onclick="syncData()">Tüm Verileri Google Drive ile Eşitle!</a>
-    <script>
-    function syncData() {
-        const button = document.querySelector('.sync-button');
-        button.innerHTML = 'Eşitleniyor...';
-        fetch('/sync').then(response => {
-            if (response.ok) {
-                button.innerHTML = 'Eşitleme Tamamlandı!';
-                setTimeout(() => { button.innerHTML = 'Tüm Verileri Google Drive ile Eşitle!'; }, 3000);
-            } else {
-                button.innerHTML = 'Eşitleme Hatası';
-                setTimeout(() => { button.innerHTML = 'Tüm Verileri Google Drive ile Eşitle!'; }, 3000);
-            }
-        });
-    }
-    </script>
-"""
 
-st.markdown(sync_button_html, unsafe_allow_html=True)
-
-if 'sync' in st.experimental_get_query_params():
-    upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
-    upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
-    upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
-    st.success("Kullanıcı dosyası Drive ile eşitlendi")
