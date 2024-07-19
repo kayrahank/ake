@@ -55,8 +55,6 @@ def upload_file_to_drive(drive, file_path, file_id=None):
     file.SetContentFile(file_path)
     file.Upload()
     return file['id']
-# Authenticate and get Google Drive instance
-drive = authenticate()
 
 # Define your Google Drive file IDs
 EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
@@ -73,11 +71,26 @@ st.write('K.Kocyigit &  M.Unsaldi')
 
 t1, t2, t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
 
-# Download data from Google Drive
-data = download_file_from_drive(drive, EDATA_FILE_ID)
+# Authentication and data download should only happen when the sync button is pressed
+if st.button('Google Drive ile Senkronize Et'):
+    drive = authenticate()
 
-if "Son Değişiklik" not in data.columns:
-    data["Son Değişiklik"] = ""
+    # Download data from Google Drive
+    data = download_file_from_drive(drive, EDATA_FILE_ID)
+    log_data = download_file_from_drive(drive, LOG_DATA_FILE_ID) if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0 else None
+    user_data = download_file_from_drive(drive, USER_DATA_FILE_ID) if os.path.exists("user_data.csv") else None
+
+    # Save to session state to use later
+    st.session_state['drive'] = drive
+    st.session_state['data'] = data
+    st.session_state['log_data'] = log_data
+    st.session_state['user_data'] = user_data
+
+# Initialize data if not already in session state
+if 'data' not in st.session_state:
+    st.session_state['data'] = pd.DataFrame(columns=["Ad", "Soyad", "Bulunduğu Yer", "Tim", "Açıklama", "Son Değişiklik"])
+
+data = st.session_state['data']
 
 def log_changes(old_data, new_data):
     common_cols = old_data.columns.intersection(new_data.columns)
@@ -105,7 +118,8 @@ def log_changes(old_data, new_data):
         log_df = pd.DataFrame(log_entries)
         log_df.to_csv("log_data.csv", mode='a', header=not os.path.exists("log_data.csv"), index=False)
         # Upload the log file to Google Drive
-        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+        if 'drive' in st.session_state:
+            upload_file_to_drive(st.session_state['drive'], "log_data.csv", LOG_DATA_FILE_ID)
     return new_data
 
 if 'old_data' not in st.session_state:
@@ -157,7 +171,8 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
-        upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
+        if 'drive' in st.session_state:
+            upload_file_to_drive(st.session_state['drive'], "edata.csv", EDATA_FILE_ID)
         st.experimental_rerun()
     
     st.divider()
@@ -219,7 +234,8 @@ with t2:
             if st.button("Seçili Satırı Sil"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False, header=False)
-                upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+                if 'drive' in st.session_state:
+                    upload_file_to_drive(st.session_state['drive'], "log_data.csv", LOG_DATA_FILE_ID)
                 st.experimental_rerun()
     else:
         st.write("Henüz kayıt yok.")
@@ -242,7 +258,8 @@ with t3:
             user_data = new_entry
 
         user_data.to_csv("user_data.csv", index=False)
-        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
+        if 'drive' in st.session_state:
+            upload_file_to_drive(st.session_state['drive'], "user_data.csv", USER_DATA_FILE_ID)
         st.success("Yeni kayıt eklendi")
 
     if os.path.exists("user_data.csv"):
@@ -255,7 +272,8 @@ with t3:
             if st.button("Seçili Satırı Sil", key=1):
                 user_data = user_data.drop(row_to_delete).reset_index(drop=True)
                 user_data.to_csv("user_data.csv", index=False)
-                upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
+                if 'drive' in st.session_state:
+                    upload_file_to_drive(st.session_state['drive'], "user_data.csv", USER_DATA_FILE_ID)
                 st.experimental_rerun()
             
             st.download_button(
