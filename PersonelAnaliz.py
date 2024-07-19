@@ -7,7 +7,11 @@ import numpy as np
 import altair as alt
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+import threading
+import schedule
+import time
 
+# Setup Google Drive credentials
 credentials = {
     "installed": {
         "client_id": st.secrets["CLIENT_ID"],
@@ -25,17 +29,12 @@ with open('credentials.json', 'w') as f:
 
 def authenticate():
     gauth = GoogleAuth()
-
-    # Load client credentials
     gauth.LoadClientConfigFile("credentials.json")
 
-    # Try to load saved client credentials
     if os.path.exists("mycreds.txt"):
         gauth.LoadCredentialsFile("mycreds.txt")
     else:
-        # Authenticate if they're not there
         gauth.LocalWebserverAuth()
-        # Save the current credentials to a file
         gauth.SaveCredentialsFile("mycreds.txt")
 
     drive = GoogleDrive(gauth)
@@ -55,14 +54,34 @@ def upload_file_to_drive(drive, file_path, file_id=None):
     file.SetContentFile(file_path)
     file.Upload()
     return file['id']
-# Authenticate and get Google Drive instance
-drive = authenticate()
 
-# Define your Google Drive file IDs
-EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
-LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
-USER_DATA_FILE_ID = '1_uqB3PerwPub1_ccEYo1XQ1eExe994wb'
+def sync_with_drive():
+    drive = authenticate()
+    EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
+    LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
+    USER_DATA_FILE_ID = '1_uqB3PerwPub1_ccEYo1XQ1eExe994wb'
 
+    if os.path.exists("edata.csv"):
+        upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
+    if os.path.exists("log_data.csv"):
+        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+    if os.path.exists("user_data.csv"):
+        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
+
+def schedule_sync():
+    schedule.every().hour.at(":00").do(sync_with_drive)
+    schedule.every().hour.at(":30").do(sync_with_drive)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+# Start the synchronization scheduler in a separate thread
+sync_thread = threading.Thread(target=schedule_sync)
+sync_thread.daemon = True
+sync_thread.start()
+
+# Main Streamlit application code
 st.set_page_config(
     page_title="Kurt-Ar Arama Kurtarma",
     page_icon="⚠️",
@@ -72,6 +91,14 @@ st.title('Kurt-Ar Arama Kurtarma')
 st.write('K.Kocyigit &  M.Unsaldi')
 
 t1, t2, t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
+
+# Authenticate and get Google Drive instance
+drive = authenticate()
+
+# Define your Google Drive file IDs
+EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
+LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
+USER_DATA_FILE_ID = '1_uqB3PerwPub1_ccEYo1XQ1eExe994wb'
 
 # Download data from Google Drive
 data = download_file_from_drive(drive, EDATA_FILE_ID)
@@ -157,7 +184,6 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
-        upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
         st.experimental_rerun()
     
     st.divider()
@@ -266,5 +292,3 @@ with t3:
             )
         else:
             st.write("Silinecek kayıt yok.")
-
-
