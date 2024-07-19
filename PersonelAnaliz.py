@@ -7,52 +7,19 @@ import numpy as np
 import altair as alt
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+from oauth2client.service_account import ServiceAccountCredentials
 
-credentials = {
-    "installed": {
-        "client_id": st.secrets["CLIENT_ID"],
-        "project_id": st.secrets["PROJECT_ID"],
-        "auth_uri": st.secrets["AUTH_URI"],
-        "token_uri": st.secrets["TOKEN_URI"],
-        "auth_provider_x509_cert_url": st.secrets["AUTH_PROVIDER_CERT_URL"],
-        "client_secret": st.secrets["CLIENT_SECRET"],
-        "redirect_uris": [st.secrets["REDIRECT_URI"]]
-    }
-}
+# Load the service account credentials from Streamlit secrets
+service_account_info = st.secrets["service_account"]
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+    service_account_info,
+    scopes=['https://www.googleapis.com/auth/drive']
+)
 
-with open('credentials.json', 'w') as f:
-    json.dump(credentials, f)
-
-def authenticate():
-    gauth = GoogleAuth()
-
-    # Load client credentials
-    gauth.LoadClientConfigFile("credentials.json")
-
-    # Try to load saved client credentials
-    if os.path.exists("mycreds.txt"):
-        gauth.LoadCredentialsFile("mycreds.txt")
-    else:
-        # Authenticate if they're not there
-        gauth.CommandLineAuth()
-        # Save the current credentials to a file
-        gauth.SaveCredentialsFile("mycreds.txt")
-
-    drive = GoogleDrive(gauth)
-    return drive
-
-# Functions to upload files to Google Drive
-def upload_file_to_drive(drive, file_path, file_id=None):
-    if file_id:
-        file = drive.CreateFile({'id': file_id})
-    else:
-        file = drive.CreateFile()
-    file.SetContentFile(file_path)
-    file.Upload()
-    return file['id']
-
-# Authenticate and get Google Drive instance
-drive = authenticate()
+# Initialize GoogleDrive instance with service account credentials
+gauth = GoogleAuth()
+gauth.credentials = credentials
+drive = GoogleDrive(gauth)
 
 # Define your Google Drive file IDs
 EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
@@ -120,6 +87,15 @@ def create_two_column_table(data):
     combined_namess += [""] * (len(combined_namess) % 2)
     combined_namess = np.array(combined_namess).reshape(-1, 2)
     return pd.DataFrame(combined_namess, columns=["Toplam kişi sayısı", f"{len(combined_names)}"])
+
+def upload_file_to_drive(drive, file_path, file_id=None):
+    if file_id:
+        file = drive.CreateFile({'id': file_id})
+    else:
+        file = drive.CreateFile()
+    file.SetContentFile(file_path)
+    file.Upload()
+    return file['id']
 
 with t1:
     st.write("Kim Nerede?")
