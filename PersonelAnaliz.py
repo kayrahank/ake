@@ -203,7 +203,7 @@ with t3:
 
     if submit_button:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_entry = pd.DataFrame([[timestamp, user_name, user_input]], columns=["Zaman Damgası", "Ad", "Metin"])
+        new_entry = pd.DataFrame([[timestamp, user_name, user_input]], columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
 
         if os.path.exists("user_data.csv"):
             user_data = pd.read_csv("user_data.csv")
@@ -226,12 +226,6 @@ with t3:
                 user_data.to_csv("user_data.csv", index=False)
                 st.experimental_rerun()
             
-            st.download_button(
-                label="Dosyayı indir",
-                data=user_data.to_csv(index=False).encode('utf-8'),
-                file_name='user_data.csv',
-                mime='text/csv',
-            )
 
 if st.button("Kullanıcı dosyasını Drive ile eşitle"):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
