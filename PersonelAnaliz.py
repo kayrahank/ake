@@ -67,8 +67,6 @@ def log_changes(old_data, new_data):
                     new_data.at[index, "Son Değişiklik"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_df = pd.DataFrame(log_entries)
         log_df.to_csv("log_data.csv", mode='a', header=not os.path.exists("log_data.csv"), index=False)
-        # Upload the log file to Google Drive
-        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     return new_data
 
 if 'old_data' not in st.session_state:
@@ -129,7 +127,6 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
-        upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
         st.experimental_rerun()
     
     st.divider()
@@ -191,10 +188,13 @@ with t2:
             if st.button("Seçili Satırı Sil"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False, header=False)
-                upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
                 st.experimental_rerun()
     else:
         st.write("Henüz kayıt yok.")
+
+    if st.button("Log dosyasını Drive ile eşitle"):
+        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+        st.success("Log dosyası Drive ile eşitlendi")
 
 with t3:
     st.write("Yeni Kayıt Ekle")
@@ -214,7 +214,6 @@ with t3:
             user_data = new_entry
 
         user_data.to_csv("user_data.csv", index=False)
-        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
         st.success("Yeni kayıt eklendi")
 
     if os.path.exists("user_data.csv"):
@@ -227,7 +226,6 @@ with t3:
             if st.button("Seçili Satırı Sil", key=1):
                 user_data = user_data.drop(row_to_delete).reset_index(drop=True)
                 user_data.to_csv("user_data.csv", index=False)
-                upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
                 st.experimental_rerun()
             
             st.download_button(
@@ -236,5 +234,7 @@ with t3:
                 file_name='user_data.csv',
                 mime='text/csv',
             )
-        else:
-            st.write("Silinecek kayıt yok.")
+
+    if st.button("Kullanıcı dosyasını Drive ile eşitle"):
+        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
+        st.success("Kullanıcı dosyası Drive ile eşitlendi")
