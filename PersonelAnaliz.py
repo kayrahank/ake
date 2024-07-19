@@ -194,6 +194,12 @@ with t2:
     else:
         st.write("Henüz kayıt yok.")
 
+if os.path.exists("user_data.csv"):
+    user_data = pd.read_csv("user_data.csv")
+else:
+    user_data = pd.DataFrame(columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
+
+# Form for adding a new record
 with t3:
     st.write("Yeni Kayıt Ekle")
     with st.form(key='my_form', clear_on_submit=True):
@@ -204,27 +210,21 @@ with t3:
     if submit_button:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_entry = pd.DataFrame([[timestamp, user_name, user_input]], columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
-
-        if os.path.exists("user_data.csv"):
-            user_data = pd.read_csv("user_data.csv")
-            user_data = pd.concat([user_data, new_entry], ignore_index=True)
-        else:
-            user_data = new_entry
-
+        user_data = pd.concat([user_data, new_entry], ignore_index=True)
         user_data.to_csv("user_data.csv", index=False)
         st.success("Yeni kayıt eklendi")
+        st.experimental_rerun()
 
-    if os.path.exists("user_data.csv"):
-        user_data = pd.read_csv("user_data.csv")
-        st.write("Kayıtlar:")
-        st.dataframe(user_data, use_container_width=True)
+# Display the records
+if not user_data.empty:
+    st.write("Kayıtlar:")
+    st.dataframe(user_data, use_container_width=True)
 
-        if not user_data.empty:
-            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
-            if st.button("Seçili Satırı Sil", key=1):
-                user_data = user_data.drop(row_to_delete).reset_index(drop=True)
-                user_data.to_csv("user_data.csv", index=False)
-                st.experimental_rerun()
+    row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
+    if st.button("Seçili Satırı Sil", key=1):
+        user_data = user_data.drop(row_to_delete).reset_index(drop=True)
+        user_data.to_csv("user_data.csv", index=False)
+        st.experimental_rerun()
             
 
 if st.button("Kullanıcı dosyasını Drive ile eşitle"):
