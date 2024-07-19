@@ -179,15 +179,10 @@ with t2:
         log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Eski Değer", "Yeni Değer"], header=0)
         
         st.dataframe(log_data, use_container_width=True)
-        
-        col1, col2 = st.columns([1, 10])
-        with col1:
-            if len(log_data) > 0:
-                row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_row")
-        
-        with col2:
-            st.write("")
-            if st.button("Seçili Satırı Sil"):
+
+        if not log_data.empty:
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1)
+            if st.button("Seçili Satırı Sil", key="delete_log_row"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False)
                 st.experimental_rerun()
@@ -220,7 +215,7 @@ with t3:
 
         if len(user_data) > 0:
             row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
-            if st.button("Seçili Satırı Sil", key=1):
+            if st.button("Seçili Satırı Sil", key="delete_user_row"):
                 user_data = user_data.drop(row_to_delete).reset_index(drop=True)
                 user_data.to_csv("user_data.csv", index=False)
                 st.experimental_rerun()
