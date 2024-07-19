@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import os
 import json
-import time
 from datetime import datetime
 import numpy as np
 import altair as alt
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from multiprocessing import Process
+import asyncio
+import threading
 
 # Setup Google Drive credentials
 credentials = {
@@ -54,7 +54,7 @@ def upload_file_to_drive(drive, file_path, file_id=None):
     file.Upload()
     return file['id']
 
-def sync_with_drive():
+async def sync_with_drive():
     drive = authenticate()
     EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
     LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
@@ -68,11 +68,16 @@ def sync_with_drive():
         if os.path.exists("user_data.csv"):
             upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
         
-        time.sleep(30)
+        await asyncio.sleep(30)
 
-# Start the synchronization process
-sync_process = Process(target=sync_with_drive)
-sync_process.start()
+def start_sync():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(sync_with_drive())
+
+# Start the synchronization thread
+sync_thread = threading.Thread(target=start_sync)
+sync_thread.start()
 
 # Main Streamlit application code
 st.set_page_config(
