@@ -126,11 +126,6 @@ with t1:
                 "⚙️Tim Dışı",
             ],
             required=True,
-        ),
-        "Açıklama": st.column_config.TextColumn(
-        " ",
-        help="Açıklama",
-        width="large"
         )
     })
 
