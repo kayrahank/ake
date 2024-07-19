@@ -4,49 +4,6 @@ import os
 from datetime import datetime
 import numpy as np
 import altair as alt
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
-
-
-def authenticate():
-    gauth = GoogleAuth()
-
-    # Load client credentials
-    gauth.LoadClientConfigFile("credentials.json")
-
-    # Try to load saved client credentials
-    if os.path.exists("mycreds.txt"):
-        gauth.LoadCredentialsFile("mycreds.txt")
-    else:
-        # Authenticate if they're not there
-        gauth.LocalWebserverAuth()
-        # Save the current credentials to a file
-        gauth.SaveCredentialsFile("mycreds.txt")
-
-    drive = GoogleDrive(gauth)
-    return drive
-
-# Functions to download and upload files from/to Google Drive
-def download_file_from_drive(drive, file_id):
-    file = drive.CreateFile({'id': file_id})
-    file.GetContentFile(file['title'])
-    return pd.read_csv(file['title'])
-
-def upload_file_to_drive(drive, file_path, file_id=None):
-    if file_id:
-        file = drive.CreateFile({'id': file_id})
-    else:
-        file = drive.CreateFile()
-    file.SetContentFile(file_path)
-    file.Upload()
-    return file['id']
-# Authenticate and get Google Drive instance
-drive = authenticate()
-
-# Define your Google Drive file IDs
-EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
-LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
-USER_DATA_FILE_ID = '1_uqB3PerwPub1_ccEYo1XQ1eExe994wb'
 
 st.set_page_config(
     page_title="Kurt-Ar Arama Kurtarma",
@@ -56,10 +13,9 @@ st.set_page_config(
 st.title('Kurt-Ar Arama Kurtarma')
 st.write('K.Kocyigit &  M.Unsaldi')
 
-t1, t2, t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
+t1, t2 ,t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
 
-# Download data from Google Drive
-data = download_file_from_drive(drive, EDATA_FILE_ID)
+data = pd.read_csv("edata.csv", dtype="string")
 
 if "Son Değişiklik" not in data.columns:
     data["Son Değişiklik"] = ""
@@ -88,9 +44,10 @@ def log_changes(old_data, new_data):
 
                     new_data.at[index, "Son Değişiklik"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_df = pd.DataFrame(log_entries)
-        log_df.to_csv("log_data.csv", mode='a', header=not os.path.exists("log_data.csv"), index=False)
-        # Upload the log file to Google Drive
-        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+        if not os.path.isfile("log_data.csv"):
+            log_df.to_csv("log_data.csv", mode='a', header=True, index=False)
+        else:
+            log_df.to_csv("log_data.csv", mode='a', header=False, index=False)
     return new_data
 
 if 'old_data' not in st.session_state:
@@ -99,17 +56,17 @@ if 'old_data' not in st.session_state:
 def create_single_column_table(data):
     combined_names = data["Ad"] + " " + data["Soyad"]
     combined_namess = combined_names.tolist()
-    explanations = data["Açıklama"].tolist()
+    explanations = data["Açıklama"].tolist()  # Açıklama sütununu al
     combined_data = list(zip(combined_namess, explanations))
     return pd.DataFrame(combined_data, columns=[f"Toplam kişi sayısı: {len(combined_names)}", "Açıklama"])
+
 
 def create_two_column_table(data):
     combined_names = data["Ad"] + " " + data["Soyad"]
     combined_namess = combined_names.tolist()
-    combined_namess += [""] * (len(combined_namess) % 2)
+    combined_namess += [""] * (len(combined_namess) % 2)  # If odd number of names, add an empty string
     combined_namess = np.array(combined_namess).reshape(-1, 2)
     return pd.DataFrame(combined_namess, columns=["Toplam kişi sayısı", f"{len(combined_names)}"])
-
 with t1:
     st.write("Kim Nerede?")
 
@@ -142,9 +99,7 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
-        upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
         st.experimental_rerun()
-    
     st.divider()
     
     c1, c2, c3 = st.columns(3)
@@ -165,12 +120,12 @@ with t1:
             st.table(gorev_table)
         else:
             st.write("Göreve giden yok")
-
     with c3:
         st.write("❔Diğer")
         diger_data = data[data["Bulunduğu Yer"] == "❔ Diğer"]
         if not diger_data.empty:
             diger_table = create_single_column_table(diger_data)
+            # Index'i 1'den başlayacak şekilde yeniden ayarla
             diger_table.index = diger_table.index + 1
             st.table(diger_table)
         else:
@@ -197,14 +152,13 @@ with t2:
         st.dataframe(log_data, use_container_width=True)
         col1, col2 = st.columns([1, 10])
         with col1:
-            row_to_delete = st.number_input("", min_value=0, max_value=len(log_data)-1, step=1)
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1)
         
         with col2:
             st.write("")
             if st.button("Seçili Satırı Sil"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False, header=False)
-                upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
                 st.experimental_rerun()
     else:
         st.write("Henüz kayıt yok.")
@@ -217,32 +171,38 @@ with t3:
         submit_button = st.form_submit_button(label='Ekle')
 
     if submit_button:
+        # Zaman damgası oluşturma
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Yeni girdiyi oluşturma
         new_entry = pd.DataFrame([[timestamp, user_name, user_input]], columns=["Zaman Damgası", "Ad", "Metin"])
-
+        
+        # Mevcut tabloyu yükleme veya yeni bir tane oluşturma
         if os.path.exists("user_data.csv"):
             user_data = pd.read_csv("user_data.csv")
             user_data = pd.concat([user_data, new_entry], ignore_index=True)
         else:
             user_data = new_entry
-
+        
+        # Tabloyu kaydetme
         user_data.to_csv("user_data.csv", index=False)
-        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
         st.success("Yeni kayıt eklendi")
 
+    # Mevcut kayıtları gösterme ve silme
     if os.path.exists("user_data.csv"):
         user_data = pd.read_csv("user_data.csv")
         st.write("Kayıtlar:")
         st.dataframe(user_data, use_container_width=True)
 
         if not user_data.empty:
+            # Satır silme işlemi
             row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
             if st.button("Seçili Satırı Sil", key=1):
                 user_data = user_data.drop(row_to_delete).reset_index(drop=True)
                 user_data.to_csv("user_data.csv", index=False)
-                upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
                 st.experimental_rerun()
             
+            # Dosya indirme işlemi
             st.download_button(
                 label="Dosyayı indir",
                 data=user_data.to_csv(index=False).encode('utf-8'),
