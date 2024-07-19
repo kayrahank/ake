@@ -7,6 +7,7 @@ import altair as alt
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from oauth2client.service_account import ServiceAccountCredentials
+import pytz
 
 # Load the service account credentials from Streamlit secrets
 service_account_info = st.secrets["service_account"]
@@ -41,6 +42,10 @@ data = pd.read_csv("edata.csv")
 if "Son Değişiklik" not in data.columns:
     data["Son Değişiklik"] = ""
 
+def get_current_time_in_istanbul():
+    istanbul_tz = pytz.timezone('Europe/Istanbul')
+    return datetime.now(istanbul_tz).strftime("%Y-%m-%d %H:%M:%S")
+
 def log_changes(old_data, new_data):
     common_cols = old_data.columns.intersection(new_data.columns)
     old_data = old_data[common_cols]
@@ -55,15 +60,15 @@ def log_changes(old_data, new_data):
                 new_value = changes.at[index, (column, 'other')]
                 if pd.isna(old_value) and pd.notna(new_value) or pd.notna(old_value) and pd.isna(new_value) or old_value != new_value:
                     log_entries.append({
-                        "Tarih-Saat": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "Tarih-Saat": get_current_time_in_istanbul(),
                         "Adı": new_data.iat[index, 1],  
                         "Soyadı": new_data.iat[index, 2],  
                         "Yapılan Değişiklik Türü": column,
-                        "Yeni Değer": old_value,  # Başlıkları düzelttik
-                        "Eski Değer": new_value   # Başlıkları düzelttik
+                        "Yeni Değer": old_value,
+                        "Eski Değer": new_value
                     })
 
-                    new_data.at[index, "Son Değişiklik"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    new_data.at[index, "Son Değişiklik"] = get_current_time_in_istanbul()
         log_df = pd.DataFrame(log_entries)
         log_df.to_csv("log_data.csv", mode='a', header=not os.path.exists("log_data.csv"), index=False)
 
@@ -202,7 +207,7 @@ with t3:
         submit_button = st.form_submit_button(label='Ekle')
 
     if submit_button:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = get_current_time_in_istanbul()
         new_entry = pd.DataFrame([[timestamp, user_name, user_input]], columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
         user_data = pd.concat([user_data, new_entry], ignore_index=True)
         user_data.to_csv("user_data.csv", index=False)
@@ -225,5 +230,3 @@ if st.button("Tüm Dosyaları Google Drive ile Eşitle",type="primary"):
     upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
-
-
