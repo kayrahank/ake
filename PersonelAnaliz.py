@@ -59,8 +59,8 @@ def log_changes(old_data, new_data):
                         "Adı": new_data.iat[index, 1],  
                         "Soyadı": new_data.iat[index, 2],  
                         "Yapılan Değişiklik Türü": column,
-                        "Eski Değer": old_value,
-                        "Yeni Değer": new_value
+                        "Yeni Değer": old_value,  # Başlıkları düzelttik
+                        "Eski Değer": new_value   # Başlıkları düzelttik
                     })
 
                     new_data.at[index, "Son Değişiklik"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -176,13 +176,13 @@ with t1:
 with t2:
     st.write("Kayıt Defteri")
     if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0:
-        log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Eski Değer", "Yeni Değer"], header=0)
+        log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Yeni Değer", "Eski Değer"], header=0)
         
         st.dataframe(log_data, use_container_width=True)
 
         if not log_data.empty:
-            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1)
-            if st.button("Seçili Satırı Sil", key="delete_log_row"):
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_log_row")
+            if st.button("Seçili Satırı Sil", key="delete_log_button"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False)
                 st.experimental_rerun()
@@ -214,8 +214,8 @@ with t3:
         st.dataframe(user_data, use_container_width=True)
 
         if len(user_data) > 0:
-            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
-            if st.button("Seçili Satırı Sil", key="delete_user_row"):
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1, key="delete_user_row")
+            if st.button("Seçili Satırı Sil", key="delete_user_button"):
                 user_data = user_data.drop(row_to_delete).reset_index(drop=True)
                 user_data.to_csv("user_data.csv", index=False)
                 st.experimental_rerun()
