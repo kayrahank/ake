@@ -103,7 +103,7 @@ def upload_file_to_drive(drive, file_path, file_id=None):
 with t1:
     st.write("Kim Nerede?")
 
-    edited = st.data_editor(data, use_container_width=True, hide_index=True, key="changedData", column_config={
+    edited = st.experimental_data_editor(data, use_container_width=True, hide_index=True, key="changedData", column_config={
         "Bulunduğu Yer": st.column_config.SelectboxColumn(
             "Bulunduğu Yer",
             help="Kişinin bulunduğu yer",
