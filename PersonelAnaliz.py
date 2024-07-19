@@ -34,7 +34,7 @@ def authenticate():
         gauth.LoadCredentialsFile("mycreds.txt")
     else:
         # Authenticate if they're not there
-        gauth.LocalWebserverAuth()
+        gauth.CommandLineAuth()
         # Save the current credentials to a file
         gauth.SaveCredentialsFile("mycreds.txt")
 
