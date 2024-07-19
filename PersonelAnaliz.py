@@ -217,10 +217,10 @@ with t3:
         user_data.to_csv("user_data.csv", index=False)
         st.success("Yeni kayıt eklendi")
 
-    if os.path.exists("user_data.csv"):
-        user_data = pd.read_csv("user_data.csv")
-        st.write("Kayıtlar:")
-        st.dataframe(user_data, use_container_width=True)
+    
+    user_data = pd.read_csv("user_data.csv")
+    st.write("Kayıtlar:")
+    st.dataframe(user_data, use_container_width=True)
 
         if not user_data.empty:
             row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
