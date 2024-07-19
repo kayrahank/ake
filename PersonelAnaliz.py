@@ -220,7 +220,7 @@ with t3:
                 user_data.to_csv("user_data.csv", index=False)
                 st.experimental_rerun()
 
-if st.button("Tüm Dosyaları Google Drive ile Eşitle",type=primary):
+if st.button("Tüm Dosyaları Google Drive ile Eşitle",type="primary"):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
     upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
