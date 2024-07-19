@@ -7,10 +7,7 @@ import numpy as np
 import altair as alt
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-import asyncio
-import threading
 
-# Setup Google Drive credentials
 credentials = {
     "installed": {
         "client_id": st.secrets["CLIENT_ID"],
@@ -28,12 +25,17 @@ with open('credentials.json', 'w') as f:
 
 def authenticate():
     gauth = GoogleAuth()
+
+    # Load client credentials
     gauth.LoadClientConfigFile("credentials.json")
 
+    # Try to load saved client credentials
     if os.path.exists("mycreds.txt"):
         gauth.LoadCredentialsFile("mycreds.txt")
     else:
+        # Authenticate if they're not there
         gauth.LocalWebserverAuth()
+        # Save the current credentials to a file
         gauth.SaveCredentialsFile("mycreds.txt")
 
     drive = GoogleDrive(gauth)
@@ -53,33 +55,14 @@ def upload_file_to_drive(drive, file_path, file_id=None):
     file.SetContentFile(file_path)
     file.Upload()
     return file['id']
+# Authenticate and get Google Drive instance
+drive = authenticate()
 
-async def sync_with_drive():
-    drive = authenticate()
-    EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
-    LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
-    USER_DATA_FILE_ID = '1_uqB3PerwPub1_ccEYo1XQ1eExe994wb'
+# Define your Google Drive file IDs
+EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
+LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
+USER_DATA_FILE_ID = '1_uqB3PerwPub1_ccEYo1XQ1eExe994wb'
 
-    while True:
-        if os.path.exists("edata.csv"):
-            upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
-        if os.path.exists("log_data.csv"):
-            upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
-        if os.path.exists("user_data.csv"):
-            upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
-        
-        await asyncio.sleep(100)
-
-def start_sync():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(sync_with_drive())
-
-# Start the synchronization thread
-sync_thread = threading.Thread(target=start_sync)
-sync_thread.start()
-
-# Main Streamlit application code
 st.set_page_config(
     page_title="Kurt-Ar Arama Kurtarma",
     page_icon="⚠️",
@@ -89,14 +72,6 @@ st.title('Kurt-Ar Arama Kurtarma')
 st.write('K.Kocyigit &  M.Unsaldi')
 
 t1, t2, t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
-
-# Authenticate and get Google Drive instance
-drive = authenticate()
-
-# Define your Google Drive file IDs
-EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
-LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
-USER_DATA_FILE_ID = '1_uqB3PerwPub1_ccEYo1XQ1eExe994wb'
 
 # Download data from Google Drive
 data = download_file_from_drive(drive, EDATA_FILE_ID)
@@ -129,6 +104,8 @@ def log_changes(old_data, new_data):
                     new_data.at[index, "Son Değişiklik"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_df = pd.DataFrame(log_entries)
         log_df.to_csv("log_data.csv", mode='a', header=not os.path.exists("log_data.csv"), index=False)
+        # Upload the log file to Google Drive
+        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     return new_data
 
 if 'old_data' not in st.session_state:
@@ -180,6 +157,7 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
+        upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
         st.experimental_rerun()
     
     st.divider()
@@ -241,6 +219,7 @@ with t2:
             if st.button("Seçili Satırı Sil"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False, header=False)
+                upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
                 st.experimental_rerun()
     else:
         st.write("Henüz kayıt yok.")
@@ -263,6 +242,7 @@ with t3:
             user_data = new_entry
 
         user_data.to_csv("user_data.csv", index=False)
+        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
         st.success("Yeni kayıt eklendi")
 
     if os.path.exists("user_data.csv"):
@@ -275,6 +255,7 @@ with t3:
             if st.button("Seçili Satırı Sil", key=1):
                 user_data = user_data.drop(row_to_delete).reset_index(drop=True)
                 user_data.to_csv("user_data.csv", index=False)
+                upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
                 st.experimental_rerun()
             
             st.download_button(
@@ -285,3 +266,5 @@ with t3:
             )
         else:
             st.write("Silinecek kayıt yok.")
+
+
