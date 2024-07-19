@@ -43,31 +43,27 @@ if "Son Değişiklik" not in data.columns:
     data["Son Değişiklik"] = ""
 
 def log_changes(old_data, new_data):
-    common_cols = old_data.columns.intersection(new_data.columns)
-    old_data = old_data[common_cols]
-    new_data = new_data[common_cols]
-    
     changes = new_data.compare(old_data)
     if not changes.empty:
         log_entries = []
-        for index in changes.index:
+        for index, row in changes.iterrows():
             for column in changes.columns.levels[0]:
                 old_value = changes.at[index, (column, 'self')]
                 new_value = changes.at[index, (column, 'other')]
-                if pd.isna(old_value) and pd.notna(new_value) or pd.notna(old_value) and pd.isna(new_value) or old_value != new_value:
+                if (pd.isna(old_value) and pd.notna(new_value)) or (pd.notna(old_value) and pd.isna(new_value)) or (pd.notna(old_value) and pd.notna(new_value) and old_value != new_value):
                     log_entries.append({
                         "Tarih-Saat": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "Adı": new_data.iat[index, 1],  
-                        "Soyadı": new_data.iat[index, 2],  
+                        "Adı": new_data.iat[index, 1],  # 2nd column (index 1)
+                        "Soyadı": new_data.iat[index, 2],  # 3rd column (index 2)
                         "Yapılan Değişiklik Türü": column,
                         "Eski Değer": old_value,
                         "Yeni Değer": new_value
                     })
-
-                    new_data.at[index, "Son Değişiklik"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_df = pd.DataFrame(log_entries)
-        log_df.to_csv("log_data.csv", mode='a', header=not os.path.exists("log_data.csv"), index=False)
-    return new_data
+        if not os.path.isfile("log_data.csv"):
+            log_df.to_csv("log_data.csv", mode='a', header=True, index=False)
+        else:
+            log_df.to_csv("log_data.csv", mode='a', header=False, index=False)
 
 if 'old_data' not in st.session_state:
     st.session_state['old_data'] = data.copy()
@@ -193,9 +189,6 @@ with t2:
     else:
         st.write("Henüz kayıt yok.")
 
-    if st.button("Log dosyasını Drive ile eşitle"):
-        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
-        st.success("Log dosyası Drive ile eşitlendi")
 
 with t3:
     st.write("Yeni Kayıt Ekle")
