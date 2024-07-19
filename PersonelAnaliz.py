@@ -182,7 +182,8 @@ with t2:
         
         col1, col2 = st.columns([1, 10])
         with col1:
-            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_row")
+            if len(log_data) > 0:
+                row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_row")
         
         with col2:
             st.write("")
@@ -217,11 +218,12 @@ with t3:
         st.write("Kayıtlar:")
         st.dataframe(user_data, use_container_width=True)
 
-        row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
-        if st.button("Seçili Satırı Sil", key=1):
-            user_data = user_data.drop(row_to_delete).reset_index(drop=True)
-            user_data.to_csv("user_data.csv", index=False)
-            st.experimental_rerun()
+        if len(user_data) > 0:
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
+            if st.button("Seçili Satırı Sil", key=1):
+                user_data = user_data.drop(row_to_delete).reset_index(drop=True)
+                user_data.to_csv("user_data.csv", index=False)
+                st.experimental_rerun()
 
 if st.button("Kullanıcı dosyasını Drive ile eşitle"):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
