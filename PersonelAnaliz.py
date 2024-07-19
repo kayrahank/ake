@@ -1,11 +1,27 @@
 import streamlit as st
 import pandas as pd
 import os
+import json
 from datetime import datetime
 import numpy as np
 import altair as alt
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+
+credentials = {
+    "installed": {
+        "client_id": st.secrets["CLIENT_ID"],
+        "project_id": st.secrets["PROJECT_ID"],
+        "auth_uri": st.secrets["AUTH_URI"],
+        "token_uri": st.secrets["TOKEN_URI"],
+        "auth_provider_x509_cert_url": st.secrets["AUTH_PROVIDER_CERT_URL"],
+        "client_secret": st.secrets["CLIENT_SECRET"],
+        "redirect_uris": [st.secrets["REDIRECT_URI"]]
+    }
+}
+
+with open('credentials.json', 'w') as f:
+    json.dump(credentials, f)
 
 
 def authenticate():
