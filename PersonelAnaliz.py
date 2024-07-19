@@ -66,7 +66,10 @@ def log_changes(old_data, new_data):
 
                     new_data.at[index, "Son Değişiklik"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_df = pd.DataFrame(log_entries)
-        log_df.to_csv("log_data.csv", mode='a', header=not os.path.exists("log_data.csv"), index=False)
+        if not os.path.isfile("log_data.csv"):
+            log_df.to_csv("log_data.csv", mode='a', header=True, index=False)
+        else:
+            log_df.to_csv("log_data.csv", mode='a', header=False, index=False)
     return new_data
 
 if 'old_data' not in st.session_state:
