@@ -42,6 +42,9 @@ data = pd.read_csv("edata.csv")
 if "Son Değişiklik" not in data.columns:
     data["Son Değişiklik"] = ""
 
+# Set default value for the "Açıklama" column
+data["Açıklama"].fillna("açıklama", inplace=True)
+
 def get_current_time_in_istanbul():
     istanbul_tz = pytz.timezone('Europe/Istanbul')
     return datetime.now(istanbul_tz).strftime("%Y-%m-%d %H:%M:%S")
@@ -77,29 +80,6 @@ def log_changes(old_data, new_data):
 if 'old_data' not in st.session_state:
     st.session_state['old_data'] = data.copy()
 
-def create_single_column_table(data):
-    combined_names = data["Ad"] + " " + data["Soyad"]
-    combined_namess = combined_names.tolist()
-    explanations = data["Açıklama"].tolist()
-    combined_data = list(zip(combined_namess, explanations))
-    return pd.DataFrame(combined_data, columns=[f"Toplam kişi sayısı: {len(combined_names)}", "Açıklama"])
-
-def create_two_column_table(data):
-    combined_names = data["Ad"] + " " + data["Soyad"]
-    combined_namess = combined_names.tolist()
-    combined_namess += [""] * (len(combined_namess) % 2)
-    combined_namess = np.array(combined_namess).reshape(-1, 2)
-    return pd.DataFrame(combined_namess, columns=["Toplam kişi sayısı", f"{len(combined_names)}"])
-
-def upload_file_to_drive(drive, file_path, file_id=None):
-    if file_id:
-        file = drive.CreateFile({'id': file_id})
-    else:
-        file = drive.CreateFile()
-    file.SetContentFile(file_path)
-    file.Upload()
-    return file['id']
-
 with t1:
     st.write("Kim Nerede?")
 
@@ -126,6 +106,11 @@ with t1:
                 "⚙️Tim Dışı",
             ],
             required=True,
+        ),
+        "Açıklama": st.column_config.TextColumn(
+            "Açıklama",
+            help="Açıklama",
+            width="large"
         )
     })
 
