@@ -68,7 +68,7 @@ async def sync_with_drive():
         if os.path.exists("user_data.csv"):
             upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
         
-        await asyncio.sleep(30)
+        await asyncio.sleep(100)
 
 def start_sync():
     loop = asyncio.new_event_loop()
