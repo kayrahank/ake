@@ -217,7 +217,7 @@ with t3:
         user_data.to_csv("user_data.csv", index=False)
         st.success("Yeni kayıt eklendi")
 
-    
+    if os.path.exists("user_data.csv"):
         user_data = pd.read_csv("user_data.csv")
         st.write("Kayıtlar:")
         st.dataframe(user_data, use_container_width=True)
