@@ -194,13 +194,15 @@ with t2:
     else:
         st.write("Henüz kayıt yok.")
 
-if os.path.exists("user_data.csv"):
-    user_data = pd.read_csv("user_data.csv")
-else:
-    user_data = pd.DataFrame(columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
 
-# Form for adding a new record
+
+
+
+
+
+
 with t3:
+    user_data = pd.read_csv("user_data.csv")
     st.write("Yeni Kayıt Ekle")
     with st.form(key='my_form', clear_on_submit=True):
         user_name = st.text_input("Kaydı Giren Kişi")
