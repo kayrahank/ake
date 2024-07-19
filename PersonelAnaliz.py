@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import os
-import json
 from datetime import datetime
 import numpy as np
 import altair as alt
@@ -162,7 +161,7 @@ with t1:
         else:
             st.write("Diğer kategorisinde kimse yok!")
 
-    colmn1,colmn2,column3 = st.columns([2,3,2])
+    colmn1, colmn2, column3 = st.columns([2,3,2])
     chart_data = data["Bulunduğu Yer"].value_counts().reset_index()
     chart_data.columns = ["Bulunduğu Yer", "Kişi Sayısı"]
 
@@ -178,7 +177,7 @@ with t1:
 with t2:
     st.write("Kayıt Defteri")
     if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0:
-        log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Eski Değer", "Yeni Değer"])
+        log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Eski Değer", "Yeni Değer"], header=0)
         
         st.dataframe(log_data, use_container_width=True)
         
@@ -190,11 +189,10 @@ with t2:
             st.write("")
             if st.button("Seçili Satırı Sil"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
-                log_data.to_csv("log_data.csv", index=False, header=True)
+                log_data.to_csv("log_data.csv", index=False)
                 st.experimental_rerun()
     else:
         st.write("Henüz kayıt yok.")
-
 
 with t3:
     st.write("Yeni Kayıt Ekle")
