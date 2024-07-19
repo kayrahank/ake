@@ -9,3 +9,4 @@ st-theme
 streamlit_option_menu
 google.auth
 datetime
+pydrive
