@@ -31,7 +31,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded")
 st.title('Kurt-Ar Arama Kurtarma')
-st.write('K.Kocyigit &  M.Unsaldi')
+st.write('K.Kocyigit & M.Unsaldi')
 
 t1, t2, t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
 
@@ -40,7 +40,6 @@ data = pd.read_csv("edata.csv")
 
 if "Son Değişiklik" not in data.columns:
     data["Son Değişiklik"] = ""
-
 
 def log_changes(old_data, new_data):
     common_cols = old_data.columns.intersection(new_data.columns)
@@ -194,15 +193,12 @@ with t2:
     else:
         st.write("Henüz kayıt yok.")
 
-
-
-
-
-
-
-
 with t3:
-    user_data = pd.read_csv("user_data.csv")
+    if os.path.exists("user_data.csv"):
+        user_data = pd.read_csv("user_data.csv")
+    else:
+        user_data = pd.DataFrame(columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
+
     st.write("Yeni Kayıt Ekle")
     with st.form(key='my_form', clear_on_submit=True):
         user_name = st.text_input("Kaydı Giren Kişi")
@@ -217,7 +213,6 @@ with t3:
         st.success("Yeni kayıt eklendi")
         st.experimental_rerun()
 
-# Display the records
     if not user_data.empty:
         st.write("Kayıtlar:")
         st.dataframe(user_data, use_container_width=True)
@@ -227,7 +222,6 @@ with t3:
             user_data = user_data.drop(row_to_delete).reset_index(drop=True)
             user_data.to_csv("user_data.csv", index=False)
             st.experimental_rerun()
-            
 
 if st.button("Kullanıcı dosyasını Drive ile eşitle"):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
