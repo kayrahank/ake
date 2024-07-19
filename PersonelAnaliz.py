@@ -218,15 +218,15 @@ with t3:
         st.experimental_rerun()
 
 # Display the records
-if not user_data.empty:
-    st.write("Kayıtlar:")
-    st.dataframe(user_data, use_container_width=True)
+    if not user_data.empty:
+        st.write("Kayıtlar:")
+        st.dataframe(user_data, use_container_width=True)
 
-    row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
-    if st.button("Seçili Satırı Sil", key=1):
-        user_data = user_data.drop(row_to_delete).reset_index(drop=True)
-        user_data.to_csv("user_data.csv", index=False)
-        st.experimental_rerun()
+        row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1)
+        if st.button("Seçili Satırı Sil", key=1):
+            user_data = user_data.drop(row_to_delete).reset_index(drop=True)
+            user_data.to_csv("user_data.csv", index=False)
+            st.experimental_rerun()
             
 
 if st.button("Kullanıcı dosyasını Drive ile eşitle"):
