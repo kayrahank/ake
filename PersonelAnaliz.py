@@ -176,18 +176,19 @@ with t1:
 with t2:
     st.write("Kayıt Defteri")
     if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0:
-        log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", 'Yeni Değer', "Eski Değer"])
+        log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Eski Değer", "Yeni Değer"])
         
         st.dataframe(log_data, use_container_width=True)
+        
         col1, col2 = st.columns([1, 10])
         with col1:
-            row_to_delete = st.number_input("", min_value=0, max_value=len(log_data)-1, step=1)
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_row")
         
         with col2:
             st.write("")
             if st.button("Seçili Satırı Sil"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
-                log_data.to_csv("log_data.csv", index=False, header=False)
+                log_data.to_csv("log_data.csv", index=False, header=True)
                 st.experimental_rerun()
     else:
         st.write("Henüz kayıt yok.")
@@ -240,4 +241,3 @@ if st.button("Kullanıcı dosyasını Drive ile eşitle"):
     upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
-
