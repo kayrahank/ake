@@ -67,8 +67,8 @@ def log_changes(old_data, new_data):
                         "Adı": new_data.iat[index, 1],  
                         "Soyadı": new_data.iat[index, 2],  
                         "Yapılan Değişiklik Türü": column,
-                        "Yeni Değer": old_value,
-                        "Eski Değer": new_value
+                        "Yeni Değer": new_value,
+                        "Eski Değer": old_value
                     })
 
                     new_data.at[index, "Son Değişiklik"] = get_current_time_in_istanbul()
@@ -79,6 +79,29 @@ def log_changes(old_data, new_data):
 
 if 'old_data' not in st.session_state:
     st.session_state['old_data'] = data.copy()
+
+def create_single_column_table(data):
+    combined_names = data["Ad"] + " " + data["Soyad"]
+    combined_namess = combined_names.tolist()
+    explanations = data["Açıklama"].tolist()
+    combined_data = list(zip(combined_namess, explanations))
+    return pd.DataFrame(combined_data, columns=[f"Toplam kişi sayısı: {len(combined_names)}", "Açıklama"])
+
+def create_two_column_table(data):
+    combined_names = data["Ad"] + " " + data["Soyad"]
+    combined_namess = combined_names.tolist()
+    combined_namess += [""] * (len(combined_namess) % 2)
+    combined_namess = np.array(combined_namess).reshape(-1, 2)
+    return pd.DataFrame(combined_namess, columns=["Toplam kişi sayısı", f"{len(combined_names)}"])
+
+def upload_file_to_drive(drive, file_path, file_id=None):
+    if file_id:
+        file = drive.CreateFile({'id': file_id})
+    else:
+        file = drive.CreateFile()
+    file.SetContentFile(file_path)
+    file.Upload()
+    return file['id']
 
 with t1:
     st.write("Kim Nerede?")
