@@ -227,16 +227,3 @@ if st.button("Tüm Dosyaları Google Drive ile Eşitle",type="primary"):
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
 
 
-
-button_style = “”"
-
-.stButton > button {
-color: white;
-background: green;
-width: 100px;
-height: 50px;
-}
-
-“”"
-st.markdown(button_style, unsafe_allow_html=True)
-st.button(‘Button’)
