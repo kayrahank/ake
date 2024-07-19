@@ -237,4 +237,7 @@ with t3:
 
 if st.button("Kullanıcı dosyasını Drive ile eşitle"):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
+    upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+    upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
+
