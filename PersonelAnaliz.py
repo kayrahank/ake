@@ -131,7 +131,7 @@ with t1:
             required=True,
         ),
         "Açıklama": st.column_config.TextColumn(
-            "Açıklama",
+            " ",
             help="Açıklama",
             width="large"
         )
