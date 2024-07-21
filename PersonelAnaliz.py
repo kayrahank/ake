@@ -321,9 +321,11 @@ with t4:
                 - **Kırmızı:** 4.0 ve üzeri depremler
                 """
             )
-            st.dataframe(df_last_24h)
+            
         else:
             st.write("Veri çekilemedi veya çekilen veri boş.")
+    with col2:
+        st.dataframe(df_last_24h)
 
 with t5:
     st.header("Hava Durumu")
