@@ -249,7 +249,7 @@ if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
 with t4:
     st.header("Deprem Haritası")
 
-    col1, col2 = st.columns([3, 2])
+    col1, col2 = st.columns([2, 3])
 
     with col1:
         url = "http://www.koeri.boun.edu.tr/scripts/lst0.asp"
