@@ -283,7 +283,7 @@ with t4:
             df = df.dropna(subset=['TarihSaat'])
             df_last_24h = df[df['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=24))]
 
-            max_hours = st.slider("Son Kaç Saatteki Depremleri Gösterelim?", min_value=1, max_value=27, value=24, step=1)
+            max_hours = st.slider("Son Kaç Saatteki Depremleri Gösterelim?", min_value=1, max_value=24, value=24, step=1)
             df_last_n_hours = df_last_24h[df_last_24h['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=max_hours))]
 
             m = folium.Map(location=[39.0, 35.0], zoom_start=6)
