@@ -328,7 +328,7 @@ with t5:
     city = st.text_input("Şehir Adı", "İstanbul")
 
     @st.cache_data
-    def get_weather_data(city, api_key):
+    def get_weather_data(city):
         url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
         response = requests.get(url)
         if response.status_code == 200:
@@ -337,7 +337,7 @@ with t5:
             return None
 
     @st.cache_data
-    def get_hourly_weather_data(city, api_key):
+    def get_hourly_weather_data(city):
         url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
         response = requests.get(url)
         if response.status_code == 200:
@@ -345,8 +345,8 @@ with t5:
         else:
             return None
 
-    weather_data = get_weather_data(city, api_key)
-    hourly_weather_data = get_hourly_weather_data(city, api_key)
+    weather_data = get_weather_data(city)
+    hourly_weather_data = get_hourly_weather_data(city)
 
     if weather_data:
         st.write(f"### {city} için Hava Durumu")
