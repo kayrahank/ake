@@ -81,14 +81,14 @@ if 'old_data' not in st.session_state:
     st.session_state['old_data'] = data.copy()
 
 def create_single_column_table(data):
-    combined_names = data["Ad"] + " " + data["Soyad"]
+    combined_names = data["Ad"] + " " + data["Soyad"] + " (" + data["Tim"] + ")"
     combined_namess = combined_names.tolist()
     explanations = data["Açıklama"].tolist()
     combined_data = list(zip(combined_namess, explanations))
     return pd.DataFrame(combined_data, columns=[f"Toplam kişi sayısı: {len(combined_names)}", "Açıklama"])
 
 def create_two_column_table(data):
-    combined_names = data["Ad"] + " " + data["Soyad"]
+    combined_names = data["Ad"] + " " + data["Soyad"] + " (" + data["Tim"] + ")"
     combined_namess = combined_names.tolist()
     combined_namess += [""] * (len(combined_namess) % 2)
     combined_namess = np.array(combined_namess).reshape(-1, 2)
