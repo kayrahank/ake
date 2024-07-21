@@ -253,7 +253,7 @@ with t4:
     with col1:
         url = "http://www.koeri.boun.edu.tr/scripts/lst0.asp"
 
-        @st.cache_data
+        @st.cache_data(ttl=600)  # Cache data for 10 minutes (600 seconds)
         def load_data(url):
             response = requests.get(url)
             if response.status_code == 200:
@@ -299,15 +299,18 @@ with t4:
                     return 'red'
 
             for index, row in df_last_n_hours.iterrows():
-                color = get_color(float(row['ML']))
-                folium.CircleMarker(
-                    location=[float(row['Enlem(N)']), float(row['Boylam(E)'])],
-                    radius=5 + float(row['ML']) * 2,
-                    popup=f"{row['Yer']} - ML: {row['ML']} - Saat: {row['Saat']}",
-                    color=color,
-                    fill=True,
-                    fill_color=color
-                ).add_to(m)
+                try:
+                    color = get_color(float(row['ML']))
+                    folium.CircleMarker(
+                        location=[float(row['Enlem(N)']), float(row['Boylam(E)'])],
+                        radius=5 + float(row['ML']) * 2,
+                        popup=f"{row['Yer']} - ML: {row['ML']} - Saat: {row['Saat']}",
+                        color=color,
+                        fill=True,
+                        fill_color=color
+                    ).add_to(m)
+                except ValueError:
+                    continue
 
             folium_static(m)
 
@@ -334,7 +337,7 @@ with t5:
     with col1:
         city = st.text_input("Şehir Adı", "İstanbul")
 
-        @st.cache_data
+        @st.cache_data(ttl=600)  # Cache data for 10 minutes (600 seconds)
         def get_weather_data(city):
             url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
             response = requests.get(url)
@@ -343,7 +346,7 @@ with t5:
             else:
                 return None
 
-        @st.cache_data
+        @st.cache_data(ttl=600)  # Cache data for 10 minutes (600 seconds)
         def get_hourly_weather_data(city):
             url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
             response = requests.get(url)
@@ -405,3 +408,7 @@ with t5:
 
             folium_static(weather_map)
 
+# Add a button to clear the cache
+if st.button("Veri önbelleğini temizle"):
+    st.cache_data.clear()
+    st.success("Veri önbelleği temizlendi, sayfayı yeniden yükleyin.")
