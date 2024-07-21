@@ -8,6 +8,11 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from oauth2client.service_account import ServiceAccountCredentials
 import pytz
+import requests
+from bs4 import BeautifulSoup
+import folium
+from streamlit_folium import folium_static
+import plotly.express as px
 
 # Load the service account credentials from Streamlit secrets
 service_account_info = st.secrets["service_account"]
@@ -34,7 +39,7 @@ st.set_page_config(
 st.title('Kurt-Ar Arama Kurtarma')
 st.write('K.Kocyigit & M.Unsaldi')
 
-t1, t2, t3 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı'])
+t1, t2, t3, t4, t5 = st.tabs(["Kim Nerede?", "Kayıt Defteri", 'Görev Aksiyon Kaydı', "Deprem Haritası", "Hava Durumu"])
 
 # Read data directly from local CSV files
 data = pd.read_csv("edata.csv")
@@ -238,3 +243,156 @@ if st.button("Tüm Dosyaları Google Drive ile Eşitle",type="primary"):
     upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
+
+# Deprem Haritası ve Hava Durumu Sekmeleri
+with t4:
+    st.header("Deprem Haritası")
+
+    url = "http://www.koeri.boun.edu.tr/scripts/lst0.asp"
+
+    @st.cache_data
+    def load_data(url):
+        response = requests.get(url)
+        if response.status_code == 200:
+            html_content = response.text
+            soup = BeautifulSoup(html_content, 'html.parser')
+            table = soup.find('pre')
+            if table:
+                text_data = table.get_text()
+                rows = text_data.strip().split('\n')[6:]
+                data = []
+                for row in rows:
+                    cols = row.split()
+                    data.append(cols)
+                df = pd.DataFrame(data)
+                return df
+        return None
+
+    df = load_data(url)
+
+    if df is not None:
+        df.columns = ['Tarih', 'Saat', 'Enlem(N)', 'Boylam(E)', 'Derinlik(km)', 'MD', 'ML', 'Mw', 'Yer', 'Nitelik', 'Boş1', 'Boş2', 'Boş3', 'Boş4']
+        df = df.drop(columns=['Boş1', 'Boş2', 'Boş3', 'Boş4'])
+        df['Tarih'] = df['Tarih'].astype(str).str.strip()
+        df['Saat'] = df['Saat'].astype(str).str.strip()
+        df = df.dropna(subset=['Tarih', 'Saat'])
+        df['TarihSaat'] = pd.to_datetime(df['Tarih'] + ' ' + df['Saat'], errors='coerce')
+        df = df.dropna(subset=['TarihSaat'])
+        df_last_24h = df[df['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=24))]
+
+        hour_range = st.slider("Saat Aralığı Seçin", 0, 23, (0, 23), step=1)
+        df_last_24h = df_last_24h[(df_last_24h['TarihSaat'].dt.hour >= hour_range[0]) & (df_last_24h['TarihSaat'].dt.hour <= hour_range[1])]
+
+        m = folium.Map(location=[39.0, 35.0], zoom_start=6)
+
+        def get_color(magnitude):
+            if magnitude < 2.0:
+                return 'green'
+            elif 2.0 <= magnitude < 3.0:
+                return 'blue'
+            elif 3.0 <= magnitude < 4.0:
+                return 'orange'
+            else:
+                return 'red'
+
+        for index, row in df_last_24h.iterrows():
+            color = get_color(float(row['ML']))
+            folium.CircleMarker(
+                location=[float(row['Enlem(N)']), float(row['Boylam(E)'])],
+                radius=5 + float(row['ML']) * 2,
+                popup=f"{row['Yer']} - ML: {row['ML']} - Saat: {row['Saat']}",
+                color=color,
+                fill=True,
+                fill_color=color
+            ).add_to(m)
+
+        folium_static(m)
+
+        st.markdown("### Deprem Büyüklük Kategorileri ve Renkleri")
+        st.markdown(
+            """
+            - **Yeşil:** 2.0'dan küçük depremler
+            - **Mavi:** 2.0 - 2.9 arası depremler
+            - **Turuncu:** 3.0 - 3.9 arası depremler
+            - **Kırmızı:** 4.0 ve üzeri depremler
+            """
+        )
+        st.dataframe(df_last_24h)
+    else:
+        st.write("Veri çekilemedi veya çekilen veri boş.")
+
+with t5:
+    st.header("Hava Durumu")
+    
+    api_key = st.secrets["weather_api_key"]
+    city = st.text_input("Şehir Adı", "İstanbul")
+
+    @st.cache_data
+    def get_weather_data(city, api_key):
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+    @st.cache_data
+    def get_hourly_weather_data(city, api_key):
+        url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api_key}&units=metric"
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+    weather_data = get_weather_data(city, api_key)
+    hourly_weather_data = get_hourly_weather_data(city, api_key)
+
+    if weather_data:
+        st.write(f"### {city} için Hava Durumu")
+        st.write(f"**Sıcaklık:** {weather_data['main']['temp']}°C")
+        st.write(f"**Hissedilen Sıcaklık:** {weather_data['main']['feels_like']}°C")
+        st.write(f"**Nem:** {weather_data['main']['humidity']}%")
+        st.write(f"**Hava Durumu:** {weather_data['weather'][0]['description'].capitalize()}")
+        st.write(f"**Rüzgar Hızı:** {weather_data['wind']['speed']} m/s")
+        st.write(f"**Rüzgar Yönü:** {weather_data['wind']['deg']}°")
+        
+        if hourly_weather_data:
+            st.write("### Saatlik Hava Tahmini")
+
+            hourly_forecast = []
+            for forecast in hourly_weather_data['list'][:24]:
+                hourly_forecast.append({
+                    "Saat": forecast['dt_txt'],
+                    "Sıcaklık": forecast['main']['temp'],
+                    "Hissedilen Sıcaklık": forecast['main']['feels_like'],
+                    "Nem": forecast['main']['humidity'],
+                    "Hava Durumu": forecast['weather'][0]['description'].capitalize(),
+                    "Rüzgar Hızı": forecast['wind']['speed'],
+                    "Rüzgar Yönü": forecast['wind']['deg']
+                })
+            hourly_df = pd.DataFrame(hourly_forecast)
+            st.dataframe(hourly_df)
+            
+            fig_temp = px.line(hourly_df, x='Saat', y='Sıcaklık', title='Saatlik Sıcaklık Tahmini', labels={'Sıcaklık': 'Sıcaklık (°C)', 'Saat': 'Saat'})
+            st.plotly_chart(fig_temp)
+            
+            fig_humidity = px.line(hourly_df, x='Saat', y='Nem', title='Saatlik Nem Tahmini', labels={'Nem': 'Nem (%)', 'Saat': 'Saat'})
+            st.plotly_chart(fig_humidity)
+            
+            fig_wind = px.line(hourly_df, x='Saat', y='Rüzgar Hızı', title='Saatlik Rüzgar Hızı Tahmini', labels={'Rüzgar Hızı': 'Rüzgar Hızı (m/s)', 'Saat': 'Saat'})
+            st.plotly_chart(fig_wind)
+
+            weather_map = folium.Map(location=[weather_data['coord']['lat'], weather_data['coord']['lon']], zoom_start=10)
+
+            for forecast in hourly_weather_data['list'][:24]:
+                folium.Marker(
+                    location=[weather_data['coord']['lat'], weather_data['coord']['lon']],
+                    popup=f"Saat: {forecast['dt_txt']} - Sıcaklık: {forecast['main']['temp']}°C - Hava Durumu: {forecast['weather'][0]['description'].capitalize()}",
+                    icon=folium.Icon(icon="cloud")
+                ).add_to(weather_map)
+
+            folium_static(weather_map)
+        
+    else:
+        st.write("Hava durumu bilgisi alınamadı.")
