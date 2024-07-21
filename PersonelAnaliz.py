@@ -324,7 +324,7 @@ with t4:
 with t5:
     st.header("Hava Durumu")
     
-    api_key = st.secrets["weather_api_key"]["key"]
+    api_key = st.secrets["weather_api_key"]
     city = st.text_input("Şehir Adı", "İstanbul")
 
     @st.cache_data
