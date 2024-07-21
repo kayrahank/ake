@@ -404,3 +404,4 @@ with t5:
                 ).add_to(weather_map)
 
             folium_static(weather_map)
+
