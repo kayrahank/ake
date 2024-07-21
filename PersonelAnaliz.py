@@ -245,119 +245,126 @@ if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
 
 # Deprem Haritası ve Hava Durumu Sekmeleri
+# Deprem Haritası ve Hava Durumu Sekmeleri
 with t4:
     st.header("Deprem Haritası")
 
-    url = "http://www.koeri.boun.edu.tr/scripts/lst0.asp"
+    col1, col2 = st.columns([3, 2])
 
-    @st.cache_data
-    def load_data(url):
-        response = requests.get(url)
-        if response.status_code == 200:
-            html_content = response.text
-            soup = BeautifulSoup(html_content, 'html.parser')
-            table = soup.find('pre')
-            if table:
-                text_data = table.get_text()
-                rows = text_data.strip().split('\n')[6:]
-                data = []
-                for row in rows:
-                    cols = row.split()
-                    data.append(cols)
-                df = pd.DataFrame(data)
-                return df
-        return None
+    with col1:
+        url = "http://www.koeri.boun.edu.tr/scripts/lst0.asp"
 
-    df = load_data(url)
+        @st.cache_data
+        def load_data(url):
+            response = requests.get(url)
+            if response.status_code == 200:
+                html_content = response.text
+                soup = BeautifulSoup(html_content, 'html.parser')
+                table = soup.find('pre')
+                if table:
+                    text_data = table.get_text()
+                    rows = text_data.strip().split('\n')[6:]
+                    data = []
+                    for row in rows:
+                        cols = row.split()
+                        data.append(cols)
+                    df = pd.DataFrame(data)
+                    return df
+            return None
 
-    if df is not None:
-        df.columns = ['Tarih', 'Saat', 'Enlem(N)', 'Boylam(E)', 'Derinlik(km)', 'MD', 'ML', 'Mw', 'Yer', 'Nitelik', 'Boş1', 'Boş2', 'Boş3', 'Boş4']
-        df = df.drop(columns=['Boş1', 'Boş2', 'Boş3', 'Boş4'])
-        df['Tarih'] = df['Tarih'].astype(str).str.strip()
-        df['Saat'] = df['Saat'].astype(str).str.strip()
-        df = df.dropna(subset=['Tarih', 'Saat'])
-        df['TarihSaat'] = pd.to_datetime(df['Tarih'] + ' ' + df['Saat'], errors='coerce')
-        df = df.dropna(subset=['TarihSaat'])
-        df_last_24h = df[df['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=24))]
+        df = load_data(url)
 
-        hour_range = st.slider("Saat Aralığı Seçin", 0, 23, (0, 23), step=1)
-        df_last_24h = df_last_24h[(df_last_24h['TarihSaat'].dt.hour >= hour_range[0]) & (df_last_24h['TarihSaat'].dt.hour <= hour_range[1])]
+        if df is not None:
+            df.columns = ['Tarih', 'Saat', 'Enlem(N)', 'Boylam(E)', 'Derinlik(km)', 'MD', 'ML', 'Mw', 'Yer', 'Nitelik', 'Boş1', 'Boş2', 'Boş3', 'Boş4']
+            df = df.drop(columns=['Boş1', 'Boş2', 'Boş3', 'Boş4'])
+            df['Tarih'] = df['Tarih'].astype(str).str.strip()
+            df['Saat'] = df['Saat'].astype(str).str.strip()
+            df = df.dropna(subset=['Tarih', 'Saat'])
+            df['TarihSaat'] = pd.to_datetime(df['Tarih'] + ' ' + df['Saat'], errors='coerce')
+            df = df.dropna(subset=['TarihSaat'])
+            df_last_24h = df[df['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=24))]
 
-        m = folium.Map(location=[39.0, 35.0], zoom_start=6)
+            hour_range = st.slider("Saat Aralığı Seçin", 0, 23, (0, 23), step=1)
+            df_last_24h = df_last_24h[(df_last_24h['TarihSaat'].dt.hour >= hour_range[0]) & (df_last_24h['TarihSaat'].dt.hour <= hour_range[1])]
 
-        def get_color(magnitude):
-            if magnitude < 2.0:
-                return 'green'
-            elif 2.0 <= magnitude < 3.0:
-                return 'blue'
-            elif 3.0 <= magnitude < 4.0:
-                return 'orange'
-            else:
-                return 'red'
+            m = folium.Map(location=[39.0, 35.0], zoom_start=6)
 
-        for index, row in df_last_24h.iterrows():
-            color = get_color(float(row['ML']))
-            folium.CircleMarker(
-                location=[float(row['Enlem(N)']), float(row['Boylam(E)'])],
-                radius=5 + float(row['ML']) * 2,
-                popup=f"{row['Yer']} - ML: {row['ML']} - Saat: {row['Saat']}",
-                color=color,
-                fill=True,
-                fill_color=color
-            ).add_to(m)
+            def get_color(magnitude):
+                if magnitude < 2.0:
+                    return 'green'
+                elif 2.0 <= magnitude < 3.0:
+                    return 'blue'
+                elif 3.0 <= magnitude < 4.0:
+                    return 'orange'
+                else:
+                    return 'red'
 
-        folium_static(m)
+            for index, row in df_last_24h.iterrows():
+                color = get_color(float(row['ML']))
+                folium.CircleMarker(
+                    location=[float(row['Enlem(N)']), float(row['Boylam(E)'])],
+                    radius=5 + float(row['ML']) * 2,
+                    popup=f"{row['Yer']} - ML: {row['ML']} - Saat: {row['Saat']}",
+                    color=color,
+                    fill=True,
+                    fill_color=color
+                ).add_to(m)
 
-        st.markdown("### Deprem Büyüklük Kategorileri ve Renkleri")
-        st.markdown(
-            """
-            - **Yeşil:** 2.0'dan küçük depremler
-            - **Mavi:** 2.0 - 2.9 arası depremler
-            - **Turuncu:** 3.0 - 3.9 arası depremler
-            - **Kırmızı:** 4.0 ve üzeri depremler
-            """
-        )
-        st.dataframe(df_last_24h)
-    else:
-        st.write("Veri çekilemedi veya çekilen veri boş.")
+            folium_static(m)
+
+            st.markdown("### Deprem Büyüklük Kategorileri ve Renkleri")
+            st.markdown(
+                """
+                - **Yeşil:** 2.0'dan küçük depremler
+                - **Mavi:** 2.0 - 2.9 arası depremler
+                - **Turuncu:** 3.0 - 3.9 arası depremler
+                - **Kırmızı:** 4.0 ve üzeri depremler
+                """
+            )
+            st.dataframe(df_last_24h)
+        else:
+            st.write("Veri çekilemedi veya çekilen veri boş.")
 
 with t5:
     st.header("Hava Durumu")
-    
-    
-    city = st.text_input("Şehir Adı", "İstanbul")
 
-    @st.cache_data
-    def get_weather_data(city):
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
-        response = requests.get(url)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return None
+    col1, col2 = st.columns([2, 3])
 
-    @st.cache_data
-    def get_hourly_weather_data(city):
-        url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
-        response = requests.get(url)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return None
+    with col1:
+        city = st.text_input("Şehir Adı", "İstanbul")
 
-    weather_data = get_weather_data(city)
-    hourly_weather_data = get_hourly_weather_data(city)
+        @st.cache_data
+        def get_weather_data(city):
+            url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
+            response = requests.get(url)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return None
 
-    if weather_data:
-        st.write(f"### {city} için Hava Durumu")
-        st.write(f"**Sıcaklık:** {weather_data['main']['temp']}°C")
-        st.write(f"**Hissedilen Sıcaklık:** {weather_data['main']['feels_like']}°C")
-        st.write(f"**Nem:** {weather_data['main']['humidity']}%")
-        st.write(f"**Hava Durumu:** {weather_data['weather'][0]['description'].capitalize()}")
-        st.write(f"**Rüzgar Hızı:** {weather_data['wind']['speed']} m/s")
-        st.write(f"**Rüzgar Yönü:** {weather_data['wind']['deg']}°")
-        
-        if hourly_weather_data:
+        @st.cache_data
+        def get_hourly_weather_data(city):
+            url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
+            response = requests.get(url)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return None
+
+        weather_data = get_weather_data(city)
+        hourly_weather_data = get_hourly_weather_data(city)
+
+        if weather_data:
+            st.write(f"### {city} için Hava Durumu")
+            st.write(f"**Sıcaklık:** {weather_data['main']['temp']}°C")
+            st.write(f"**Hissedilen Sıcaklık:** {weather_data['main']['feels_like']}°C")
+            st.write(f"**Nem:** {weather_data['main']['humidity']}%")
+            st.write(f"**Hava Durumu:** {weather_data['weather'][0]['description'].capitalize()}")
+            st.write(f"**Rüzgar Hızı:** {weather_data['wind']['speed']} m/s")
+            st.write(f"**Rüzgar Yönü:** {weather_data['wind']['deg']}°")
+
+    with col2:
+        if weather_data and hourly_weather_data:
             st.write("### Saatlik Hava Tahmini")
 
             hourly_forecast = []
@@ -393,6 +400,7 @@ with t5:
                 ).add_to(weather_map)
 
             folium_static(weather_map)
-        
-    else:
-        st.write("Hava durumu bilgisi alınamadı.")
+
+        else:
+            st.write("Hava durumu bilgisi alınamadı.")
+
