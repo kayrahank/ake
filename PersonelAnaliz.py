@@ -63,7 +63,7 @@ def log_changes(old_data, new_data):
     if not changes.empty:
         log_entries = []
         for index in changes.index:
-            for column in changes.columns.levels[0]]:
+            for column in changes.columns.levels[0]:
                 old_value = changes.at[index, (column, 'self')]
                 new_value = changes.at[index, (column, 'other')]
                 if pd.isna(old_value) and pd.notna(new_value) or pd.notna(old_value) and pd.isna(new_value) or old_value != new_value:
