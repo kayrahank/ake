@@ -284,7 +284,7 @@ with t4:
             df = df.dropna(subset=['TarihSaat'])
 
             istanbul_tz = pytz.timezone('Europe/Istanbul')
-            now_istanbul = datetime.now(istanbul_tz)
+            now_istanbul = pd.Timestamp.now(istanbul_tz)
             
             max_hours = st.slider("Son Kaç Saatteki Depremleri Gösterelim?", min_value=1, max_value=24, value=24, step=1)
             df_last_n_hours = df[df['TarihSaat'] >= (now_istanbul - pd.Timedelta(hours=max_hours))]
