@@ -171,7 +171,7 @@ with t1:
     with c3:
         st.write("❔Diğer")
         diger_data = data[data["Bulunduğu Yer"] == "❔ Diğer"]
-        if not diger_data.empty():
+        if not diger_data.empty:
             diger_table = create_single_column_table(diger_data)
             diger_table.index = diger_table.index + 1
             st.table(diger_table)
@@ -227,7 +227,7 @@ with t3:
         st.success("Yeni kayıt eklendi")
         st.experimental_rerun()
 
-    if not user_data.empty():
+    if not user_data.empty:
         st.write("Kayıtlar:")
         st.dataframe(user_data, use_container_width=True)
 
@@ -324,7 +324,7 @@ with t4:
 with t5:
     st.header("Hava Durumu")
     
-    api_key = st.secrets["weather_api_key"]["key"]
+    api_key = st.secrets["weather_api_key"]
     city = st.text_input("Şehir Adı", "İstanbul")
 
     @st.cache_data
