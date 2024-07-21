@@ -324,12 +324,12 @@ with t4:
 with t5:
     st.header("Hava Durumu")
     
-    api_key = st.secrets["weather_api_key"]
+    
     city = st.text_input("Şehir Adı", "İstanbul")
 
     @st.cache_data
     def get_weather_data(city, api_key):
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
         response = requests.get(url)
         if response.status_code == 200:
             return response.json()
@@ -338,7 +338,7 @@ with t5:
 
     @st.cache_data
     def get_hourly_weather_data(city, api_key):
-        url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api_key}&units=metric"
+        url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid=92242406d0ed4c430bf77aaba84ed793&units=metric"
         response = requests.get(url)
         if response.status_code == 200:
             return response.json()
