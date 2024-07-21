@@ -282,15 +282,12 @@ with t4:
             df = df.dropna(subset=['Tarih', 'Saat'])
             df['TarihSaat'] = pd.to_datetime(df['Tarih'] + ' ' + df['Saat'], errors='coerce')
             df = df.dropna(subset=['TarihSaat'])
-
-            istanbul_tz = pytz.timezone('Europe/Istanbul')
-            now_istanbul = datetime.now(istanbul_tz)
-            now_istanbul = pd.Timestamp(now_istanbul)
+            df_last_24h = df[df['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=24))]
 
             max_hours = st.slider("Son Kaç Saatteki Depremleri Gösterelim?", min_value=1, max_value=24, value=24, step=1)
-            df_last_n_hours = df[df['TarihSaat'] >= (now_istanbul - pd.Timedelta(hours=max_hours))]
+            df_last_n_hours = df_last_24h[df_last_24h['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=max_hours))]
 
-            m = folium.Map(location=[39.0, 35.0], zoom_start=6, width='100%', height='600px')
+            m = folium.Map(location=[39.0, 35.0], zoom_start=6)
 
             def get_color(magnitude):
                 if magnitude < 2.0:
@@ -408,6 +405,5 @@ with t5:
                 ).add_to(weather_map)
 
             folium_static(weather_map)
-
 
 
