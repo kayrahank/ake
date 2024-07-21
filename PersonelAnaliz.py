@@ -126,7 +126,7 @@ with t1:
                 "☝🏻️Tim-1",
                 "✌🏻️Tim-2",
                 "👔Yönetim",
-                "⚙️Tim Dışı",
+                "⚙️Lojistik",
             ],
             required=True,
         ),
