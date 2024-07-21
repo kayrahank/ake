@@ -171,7 +171,7 @@ with t1:
     with c3:
         st.write("❔Diğer")
         diger_data = data[data["Bulunduğu Yer"] == "❔ Diğer"]
-        if not diger_data.empty():
+        if not diger_data.empty:
             diger_table = create_single_column_table(diger_data)
             diger_table.index = diger_table.index + 1
             st.table(diger_table)
@@ -227,7 +227,7 @@ with t3:
         st.success("Yeni kayıt eklendi")
         st.experimental_rerun()
 
-    if not user_data.empty():
+    if not user_data.empty:
         st.write("Kayıtlar:")
         st.dataframe(user_data, use_container_width=True)
 
@@ -238,7 +238,7 @@ with t3:
                 user_data.to_csv("user_data.csv", index=False)
                 st.experimental_rerun()
 
-if st.button("Tüm Dosyaları Google Drive ile Eşitle",type="primary"):
+if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
     upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
     upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
