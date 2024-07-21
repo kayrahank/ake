@@ -245,7 +245,6 @@ if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
     st.success("Kullanıcı dosyası Drive ile eşitlendi")
 
 # Deprem Haritası ve Hava Durumu Sekmeleri
-# Deprem Haritası ve Hava Durumu Sekmeleri
 with t4:
     st.header("Deprem Haritası")
 
@@ -325,7 +324,7 @@ with t4:
         else:
             st.write("Veri çekilemedi veya çekilen veri boş.")
     with col2:        
-        st.dataframe(df_last_n_hours)
+        st.dataframe(df_last_n_hours.drop(columns=['TarihSaat']))
 
 with t5:
     st.header("Hava Durumu")
@@ -405,5 +404,3 @@ with t5:
                 ).add_to(weather_map)
 
             folium_static(weather_map)
-
-
