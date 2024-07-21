@@ -249,7 +249,7 @@ if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
 with t4:
     st.header("Deprem Haritası")
 
-    col1, col2 = st.columns([2, 2])
+    col1, col2 = st.columns([3, 2])
 
     with col1:
         url = "http://www.koeri.boun.edu.tr/scripts/lst0.asp"
@@ -284,8 +284,8 @@ with t4:
             df = df.dropna(subset=['TarihSaat'])
             df_last_24h = df[df['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=24))]
 
-            hour_range = st.slider("Saat Aralığı Seçin", 0, 23, (0, 23), step=1)
-            df_last_24h = df_last_24h[(df_last_24h['TarihSaat'].dt.hour >= hour_range[0]) & (df_last_24h['TarihSaat'].dt.hour <= hour_range[1])]
+            max_hours = st.slider("Son Kaç Saatteki Depremleri Gösterelim?", min_value=1, max_value=24, value=24, step=1)
+            df_last_n_hours = df_last_24h[df_last_24h['TarihSaat'] >= (pd.Timestamp.now() - pd.Timedelta(hours=max_hours))]
 
             m = folium.Map(location=[39.0, 35.0], zoom_start=6)
 
@@ -299,7 +299,7 @@ with t4:
                 else:
                     return 'red'
 
-            for index, row in df_last_24h.iterrows():
+            for index, row in df_last_n_hours.iterrows():
                 color = get_color(float(row['ML']))
                 folium.CircleMarker(
                     location=[float(row['Enlem(N)']), float(row['Boylam(E)'])],
@@ -324,8 +324,8 @@ with t4:
             
         else:
             st.write("Veri çekilemedi veya çekilen veri boş.")
-    with col2:
-        st.dataframe(df_last_24h)
+    with col2:        
+        st.dataframe(df_last_n_hours)
 
 with t5:
     st.header("Hava Durumu")
