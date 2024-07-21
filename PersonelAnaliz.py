@@ -400,8 +400,8 @@ with t5:
                     popup=f"Saat: {forecast['dt_txt']} - Sıcaklık: {forecast['main']['temp']}°C - Hava Durumu: {forecast['weather'][0]['description'].capitalize()}",
                     icon=folium.Icon(icon="cloud")
                 ).add_to(weather_map)
-
-            folium_static(weather_map)
+    with col1:
+        folium_static(weather_map)
 
         else:
             st.write("Hava durumu bilgisi alınamadı.")
