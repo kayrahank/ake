@@ -391,7 +391,7 @@ with t5:
             
             fig_wind = px.line(hourly_df, x='Saat', y='Rüzgar Hızı', title='Saatlik Rüzgar Hızı Tahmini', labels={'Rüzgar Hızı': 'Rüzgar Hızı (m/s)', 'Saat': 'Saat'})
             st.plotly_chart(fig_wind)
-
+    with col1:
             weather_map = folium.Map(location=[weather_data['coord']['lat'], weather_data['coord']['lon']], zoom_start=10)
 
             for forecast in hourly_weather_data['list'][:24]:
@@ -400,8 +400,8 @@ with t5:
                     popup=f"Saat: {forecast['dt_txt']} - Sıcaklık: {forecast['main']['temp']}°C - Hava Durumu: {forecast['weather'][0]['description'].capitalize()}",
                     icon=folium.Icon(icon="cloud")
                 ).add_to(weather_map)
-    with col1:
-        folium_static(weather_map)
+
+            folium_static(weather_map)
 
         else:
             st.write("Hava durumu bilgisi alınamadı.")
