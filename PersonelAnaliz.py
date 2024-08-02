@@ -145,7 +145,7 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
-        st.experimental_rerun()
+        st.rerun()
     
     st.divider()
     
@@ -203,7 +203,7 @@ with t2:
             if st.button("Seçili Satırı Sil", key="delete_log_button"):
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False)
-                st.experimental_rerun()
+                st.rerun()
     else:
         st.write("Henüz kayıt yok.")
 
@@ -225,7 +225,7 @@ with t3:
         user_data = pd.concat([user_data, new_entry], ignore_index=True)
         user_data.to_csv("user_data.csv", index=False)
         st.success("Yeni kayıt eklendi")
-        st.experimental_rerun()
+        st.rerun()
 
     if not user_data.empty:
         st.write("Kayıtlar:")
@@ -236,7 +236,7 @@ with t3:
             if st.button("Seçili Satırı Sil", key="delete_user_button"):
                 user_data = user_data.drop(row_to_delete).reset_index(drop=True)
                 user_data.to_csv("user_data.csv", index=False)
-                st.experimental_rerun()
+                st.rerun()
 
 if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
     upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
