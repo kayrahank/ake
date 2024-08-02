@@ -26,6 +26,26 @@ gauth = GoogleAuth()
 gauth.credentials = credentials
 drive = GoogleDrive(gauth)
 
+# Add a flag to track the state of the form submission
+if "form_submitted" not in st.session_state:
+    st.session_state["form_submitted"] = False
+
+# Define a function to handle the form submission
+def handle_form_submit():
+    st.session_state["form_submitted"] = True
+
+# Create a form for user input
+with st.form(key="user_form"):
+    selected_index = st.selectbox("Silinecek satırın indeksini seçin:", range(len(df)), key="selectbox")
+    submitted = st.form_submit_button(label="Satırı Sil", on_click=handle_form_submit)
+
+# Check if the form was submitted
+if st.session_state["form_submitted"]:
+    # Perform the row deletion here
+    df = df.drop(index=selected_index)
+    st.write("Satır silindi.")
+    st.session_state["form_submitted"] = False  # Reset the form submission flag
+
 # Define your Google Drive file IDs
 EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
 LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
