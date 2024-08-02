@@ -26,26 +26,6 @@ gauth = GoogleAuth()
 gauth.credentials = credentials
 drive = GoogleDrive(gauth)
 
-# Add a flag to track the state of the form submission
-if "form_submitted" not in st.session_state:
-    st.session_state["form_submitted"] = False
-
-# Define a function to handle the form submission
-def handle_form_submit():
-    st.session_state["form_submitted"] = True
-
-# Create a form for user input
-with st.form(key="user_form"):
-    selected_index = st.selectbox("Silinecek satırın indeksini seçin:", range(len(df)), key="selectbox")
-    submitted = st.form_submit_button(label="Satırı Sil", on_click=handle_form_submit)
-
-# Check if the form was submitted
-if st.session_state["form_submitted"]:
-    # Perform the row deletion here
-    df = df.drop(index=selected_index)
-    st.write("Satır silindi.")
-    st.session_state["form_submitted"] = False  # Reset the form submission flag
-
 # Define your Google Drive file IDs
 EDATA_FILE_ID = '1la6L_Q-UTJGDoMHii3qPGCWRIAJP279h'
 LOG_DATA_FILE_ID = '17hR9CanFUQ3FWfAkp7N4yREL2pXtd2-i'
@@ -165,7 +145,7 @@ with t1:
     if edited is not None and not edited.equals(st.session_state['old_data']):
         st.session_state['old_data'] = log_changes(st.session_state['old_data'], edited)
         st.session_state['old_data'].to_csv("edata.csv", index=False)
-        st.experimental_set_query_params(rerun=True)
+        st.experimental_rerun()
     
     st.divider()
     
@@ -219,55 +199,50 @@ with t2:
         st.dataframe(log_data, use_container_width=True)
 
         if not log_data.empty:
-            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data) - 1, step=1)
-            if st.button("Satırı Sil"):
-                log_data = log_data.drop(log_data.index[row_to_delete])
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_log_row")
+            if st.button("Seçili Satırı Sil", key="delete_log_button"):
+                log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False)
-                st.experimental_set_query_params(rerun=True)
+                st.experimental_rerun()
     else:
-        st.write("Kayıt Defteri Boş")
+        st.write("Henüz kayıt yok.")
 
 with t3:
-    st.write('Görev Aksiyon Kaydı')
-    data_file = "User_data.csv"
-
-    if os.path.exists(data_file):
-        action_data = pd.read_csv(data_file)
+    if os.path.exists("user_data.csv"):
+        user_data = pd.read_csv("user_data.csv")
     else:
-        action_data = pd.DataFrame(columns=['Görev Konumu', 'Tarih ve Saat', 'Görev Türü', 'Görev Durumu'])
+        user_data = pd.DataFrame(columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
 
-    new_row = {'Görev Konumu': '', 'Tarih ve Saat': '', 'Görev Türü': '', 'Görev Durumu': ''}
-    action_data = pd.concat([action_data, pd.DataFrame([new_row])], ignore_index=True)
+    st.write("Yeni Kayıt Ekle")
+    with st.form(key='my_form', clear_on_submit=True):
+        user_name = st.text_input("Kaydı Giren Kişi")
+        user_input = st.text_area("Görev Kaydı Girin")
+        submit_button = st.form_submit_button(label='Ekle')
 
-    action_data = st.data_editor(action_data, use_container_width=True, num_rows='dynamic')
-    action_data.dropna(subset=['Görev Konumu', 'Tarih ve Saat', 'Görev Türü', 'Görev Durumu'], inplace=True)
+    if submit_button:
+        timestamp = get_current_time_in_istanbul()
+        new_entry = pd.DataFrame([[timestamp, user_name, user_input]], columns=["Tarih - Saat", "Kaydı Giren", "Olay"])
+        user_data = pd.concat([user_data, new_entry], ignore_index=True)
+        user_data.to_csv("user_data.csv", index=False)
+        st.success("Yeni kayıt eklendi")
+        st.experimental_rerun()
 
-    action_data.to_csv(data_file, index=False)
+    if not user_data.empty:
+        st.write("Kayıtlar:")
+        st.dataframe(user_data, use_container_width=True)
 
-    st.divider()
+        if len(user_data) > 0:
+            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1, key="delete_user_row")
+            if st.button("Seçili Satırı Sil", key="delete_user_button"):
+                user_data = user_data.drop(row_to_delete).reset_index(drop=True)
+                user_data.to_csv("user_data.csv", index=False)
+                st.experimental_rerun()
 
-    if os.path.exists(data_file):
-        action_data = pd.read_csv(data_file)
-        action_data.sort_values(by="Tarih ve Saat", ascending=False, inplace=True)
-
-        if not action_data.empty:
-            selected_row_index = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(action_data) - 1, step=1)
-            if st.button("Satırı Sil"):
-                action_data = action_data.drop(action_data.index[selected_row_index])
-                action_data.to_csv(data_file, index=False)
-                st.experimental_set_query_params(rerun=True)
-
-            filtered_action_data = action_data[action_data["Görev Türü"] == "Yapılan Görev"]
-            if not filtered_action_data.empty:
-                st.write("Son Yapılan Görevler")
-                st.dataframe(filtered_action_data, use_container_width=True)
-            else:
-                st.write("Görev kaydı bulunamadı.")
-
-        else:
-            st.write("Görev Aksiyon Kaydı Boş")
-    else:
-        st.write("Görev Aksiyon Kaydı Bulunamadı")
+if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
+    upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
+    upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+    upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
+    st.success("Kullanıcı dosyası Drive ile eşitlendi")
 
 # Deprem Haritası ve Hava Durumu Sekmeleri
 with t4:
