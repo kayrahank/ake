@@ -193,11 +193,13 @@ with t1:
 
 with t2:
     st.write("Kayıt Defteri")
-    log_data = pd.DataFrame(columns=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Yeni Değer", "Eski Değer"])
+    
+    log_data_columns = ["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Yeni Değer", "Eski Değer"]
+    log_data = pd.DataFrame(columns=log_data_columns)
 
     if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0:
-        log_data = pd.read_csv("log_data.csv")
-        
+        log_data = pd.read_csv("log_data.csv", names=log_data_columns, header=0)
+
     st.dataframe(log_data, use_container_width=True)
     
     if not log_data.empty:
