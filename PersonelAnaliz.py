@@ -247,7 +247,7 @@ with t3:
 
     if not user_data.empty:
         st.write("Kayıtlar:")
-        edited_data = st.experimental_data_editor(user_data, use_container_width=True)
+        edited_data = st.data_editor(user_data, use_container_width=True)
         
         if st.button("Değişiklikleri Kaydet"):
             edited_data.to_csv("user_data.csv", index=False)
