@@ -208,7 +208,7 @@ with t2:
             log_data = log_data.drop(log_data.index[row_to_delete - 1])
             log_data.to_csv("log_data.csv", index=False)
             st.success(f"{row_to_delete}. satır silindi.")
-            st.experimental_rerun()
+            st.rerun()
 
     if st.button("CSV Olarak İndir"):
         log_data.to_csv("log_data.csv", index=False)
@@ -243,7 +243,7 @@ with t3:
         user_data = pd.concat([user_data, new_entry], ignore_index=True)
         user_data.to_csv("user_data.csv", index=False)
         st.success("Yeni kayıt eklendi")
-        st.experimental_rerun()
+        st.rerun()
 
     if not user_data.empty:
         st.write("Kayıtlar:")
@@ -252,7 +252,7 @@ with t3:
         if st.button("Değişiklikleri Kaydet"):
             edited_data.to_csv("user_data.csv", index=False)
             st.success("Değişiklikler kaydedildi")
-            st.experimental_rerun()
+            st.rerun()
 
     if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
         upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
