@@ -268,16 +268,16 @@ with t4:
                     data = []
                     for row in rows:
                         cols = row.split()
-                        data.append(cols)
+                        if len(cols) >= 10:  # Ensure there are enough columns
+                            data.append(cols[:10])  # Only take the first 10 columns
                     df = pd.DataFrame(data)
                     return df
             return None
 
         df = load_data(url)
 
-        if df is not None:
-            df.columns = ['Tarih', 'Saat', 'Enlem(N)', 'Boylam(E)', 'Derinlik(km)', 'MD', 'ML', 'Mw', 'Yer', 'Nitelik', 'Boş1', 'Boş2', 'Boş3', 'Boş4']
-            df = df.drop(columns=['Boş1', 'Boş2', 'Boş3', 'Boş4'])
+        if df is not None and not df.empty:
+            df.columns = ['Tarih', 'Saat', 'Enlem(N)', 'Boylam(E)', 'Derinlik(km)', 'MD', 'ML', 'Mw', 'Yer', 'Nitelik']
             df['Tarih'] = df['Tarih'].astype(str).str.strip()
             df['Saat'] = df['Saat'].astype(str).str.strip()
             df = df.dropna(subset=['Tarih', 'Saat'])
@@ -325,12 +325,10 @@ with t4:
                 - **Kırmızı:** 4.0 ve üzeri depremler
                 """
             )
-            
         else:
             st.write("Veri çekilemedi veya çekilen veri boş.")
     with col2:        
         st.dataframe(df_last_n_hours.drop(columns=['TarihSaat']))
-
 with t5:
     st.header("Hava Durumu")
 
