@@ -210,15 +210,7 @@ with t2:
             st.success(f"{row_to_delete}. satır silindi.")
             st.rerun()
 
-    if st.button("CSV Olarak İndir"):
-        log_data.to_csv("log_data.csv", index=False)
-        with open("log_data.csv", "rb") as file:
-            st.download_button(
-                label="Download CSV",
-                data=file,
-                file_name="log_data.csv",
-                mime="text/csv"
-            )
+
 
     if st.button("Google Drive'a Yükle"):
         if os.path.exists("log_data.csv"):
@@ -423,7 +415,5 @@ with t5:
 
             folium_static(weather_map)
 
-# Add a button to clear the cache
-if st.button("Veri önbelleğini temizle"):
-    st.cache_data.clear()
-    st.success("Veri önbelleği temizlendi, sayfayı yeniden yükleyin.")
+
+
