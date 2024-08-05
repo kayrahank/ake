@@ -195,8 +195,10 @@ with t2:
     st.write("Kayıt Defteri")
     if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0:
         log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Yeni Değer", "Eski Değer"], header=0)
-        
         st.dataframe(log_data, use_container_width=True)
+    else:
+        st.write("Henüz bir değişiklik yapılmadı.")
+
 
         if not log_data.empty:
             row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_log_row")
