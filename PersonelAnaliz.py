@@ -194,7 +194,7 @@ with t1:
 with t2:
     st.write("Kayıt Defteri")
     
-    log_data_columns = ["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Yeni Değer", "Eski Değer"]
+    log_data_columns = ["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Eski Değer", "Yeni Değer"]
     log_data = pd.DataFrame(columns=log_data_columns)
 
     if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0:
