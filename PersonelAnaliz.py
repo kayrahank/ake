@@ -243,24 +243,22 @@ with t3:
         user_data = pd.concat([user_data, new_entry], ignore_index=True)
         user_data.to_csv("user_data.csv", index=False)
         st.success("Yeni kayıt eklendi")
-        st.rerun()
+        st.experimental_rerun()
 
     if not user_data.empty:
         st.write("Kayıtlar:")
-        st.dataframe(user_data, use_container_width=True)
+        edited_data = st.experimental_data_editor(user_data, use_container_width=True)
+        
+        if st.button("Değişiklikleri Kaydet"):
+            edited_data.to_csv("user_data.csv", index=False)
+            st.success("Değişiklikler kaydedildi")
+            st.experimental_rerun()
 
-        if len(user_data) > 0:
-            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(user_data)-1, step=1, key="delete_user_row")
-            if st.button("Seçili Satırı Sil", key="delete_user_button"):
-                user_data = user_data.drop(row_to_delete).reset_index(drop=True)
-                user_data.to_csv("user_data.csv", index=False)
-                st.rerun()
-
-if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
-    upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
-    upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
-    upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
-    st.success("Kullanıcı dosyası Drive ile eşitlendi")
+    if st.button("Tüm Dosyaları Google Drive ile Eşitle", type="primary"):
+        upload_file_to_drive(drive, "edata.csv", EDATA_FILE_ID)
+        upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+        upload_file_to_drive(drive, "user_data.csv", USER_DATA_FILE_ID)
+        st.success("Kullanıcı dosyası Drive ile eşitlendi")
 
 # Deprem Haritası ve Hava Durumu Sekmeleri
 with t4:
