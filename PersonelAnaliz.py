@@ -206,8 +206,8 @@ with t2:
                 log_data = log_data.drop(row_to_delete).reset_index(drop=True)
                 log_data.to_csv("log_data.csv", index=False)
                 st.rerun()
-    else:
-        st.write("Henüz kayıt yok.")
+        else:
+            st.write("Henüz kayıt yok.")
 
 with t3:
     if os.path.exists("user_data.csv"):
@@ -329,6 +329,7 @@ with t4:
             st.write("Veri çekilemedi veya çekilen veri boş.")
     with col2:        
         st.dataframe(df_last_n_hours.drop(columns=['TarihSaat']))
+
 with t5:
     st.header("Hava Durumu")
 
