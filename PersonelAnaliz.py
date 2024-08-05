@@ -193,21 +193,35 @@ with t1:
 
 with t2:
     st.write("Kayıt Defteri")
+    log_data = pd.DataFrame(columns=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Yeni Değer", "Eski Değer"])
+
     if os.path.exists("log_data.csv") and os.path.getsize("log_data.csv") > 0:
-        log_data = pd.read_csv("log_data.csv", names=["Tarih-Saat", "Adı", "Soyadı", "Yapılan Değişiklik Türü", "Yeni Değer", "Eski Değer"], header=0)
-        st.dataframe(log_data, use_container_width=True)
-    else:
-        st.write("Henüz bir değişiklik yapılmadı.")
+        log_data = pd.read_csv("log_data.csv")
+        
+    st.dataframe(log_data, use_container_width=True)
+    
+    if not log_data.empty:
+        row_to_delete = st.number_input("Silmek istediğiniz satır numarasını girin:", min_value=1, max_value=len(log_data), step=1)
+        if st.button("Satırı Sil"):
+            log_data = log_data.drop(log_data.index[row_to_delete - 1])
+            log_data.to_csv("log_data.csv", index=False)
+            st.success(f"{row_to_delete}. satır silindi.")
+            st.experimental_rerun()
 
+    if st.button("CSV Olarak İndir"):
+        log_data.to_csv("log_data.csv", index=False)
+        with open("log_data.csv", "rb") as file:
+            st.download_button(
+                label="Download CSV",
+                data=file,
+                file_name="log_data.csv",
+                mime="text/csv"
+            )
 
-        if not log_data.empty:
-            row_to_delete = st.number_input("Silinecek Satır Numarası", min_value=0, max_value=len(log_data)-1, step=1, key="delete_log_row")
-            if st.button("Seçili Satırı Sil", key="delete_log_button"):
-                log_data = log_data.drop(row_to_delete).reset_index(drop=True)
-                log_data.to_csv("log_data.csv", index=False)
-                st.rerun()
-        else:
-            st.write("Henüz kayıt yok.")
+    if st.button("Google Drive'a Yükle"):
+        if os.path.exists("log_data.csv"):
+            upload_file_to_drive(drive, "log_data.csv", LOG_DATA_FILE_ID)
+            st.success("Kayıt defteri Google Drive'a yüklendi.")
 
 with t3:
     if os.path.exists("user_data.csv"):
